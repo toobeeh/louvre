@@ -4,3 +4,4 @@ launchSettings.json
 *.http
 *_louvre.json
 **\bin
+*.db*

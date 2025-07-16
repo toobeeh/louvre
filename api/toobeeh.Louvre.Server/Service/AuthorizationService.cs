@@ -1,5 +1,9 @@
+using System.Security.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using toobeeh.Louvre.Server.Config;
+using toobeeh.Louvre.Server.Database;
+using toobeeh.Louvre.Server.Database.Model;
 using toobeeh.Louvre.Server.Dto;
 using toobeeh.Louvre.TypoApiClient;
 
@@ -9,7 +13,8 @@ public class AuthorizationService(
     ILogger<AuthorizationService> logger, 
     HttpClient httpClient, 
     IOptions<TypoApiConfig> apiOptions,
-    AuthorizedUserCacheService authorizedUserCacheService
+    AuthorizedUserCacheService authorizedUserCacheService,
+    AppDatabaseContext dbContext
     )
 {
     private readonly MembersControllerClient _membersClient = new(apiOptions.Value.BaseUrl, httpClient);
@@ -39,12 +44,28 @@ public class AuthorizationService(
         httpClient.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         var member = await _membersClient.GetAuthenticatedMemberAsync();
-
-        var user = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Contributor);
-        authorizedUserCacheService.CacheUser(accessToken, user);
+        
+        // if member is typo admin, always authorize
+        if (member.MemberFlags.Contains(MemberFlags.Admin))
+        {
+            logger.LogDebug("User is an admin, authorizing without db check");
+            var adminUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Administrator);
+            authorizedUserCacheService.CacheUser(accessToken, adminUser);
+            return adminUser;
+        }
+        
+        // fetch user config from db
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == member.UserLogin);
+        if (user is null)
+        {
+            throw new AuthenticationException("User not authorized to use app");
+        }
+        
+        var authorizedUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Contributor);
+        authorizedUserCacheService.CacheUser(accessToken, authorizedUser);
         
         logger.LogDebug("User fetched and cached for future requests");
 
-        return user;
+        return authorizedUser;
     }
 }

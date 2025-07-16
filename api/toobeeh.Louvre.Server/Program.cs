@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using toobeeh.Louvre.Server.Authentication;
 using toobeeh.Louvre.Server.Config;
+using toobeeh.Louvre.Server.Database;
 using toobeeh.Louvre.Server.Service;
 
 namespace toobeeh.Louvre.Server;
@@ -9,12 +10,13 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        AppDatabaseContext.EnsureDatabaseExists();
+        
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddOpenApi("louvre");
-
         
         // add typo authentication scheme for typo bearer token
         builder.Services.AddAuthentication(TypoTokenAuthenticationHandler.Scheme)
@@ -22,6 +24,7 @@ public class Program
                 TypoTokenAuthenticationHandler.Scheme, null);
 
         // add services
+        builder.Services.AddDbContext<AppDatabaseContext>();
         builder.Services.AddSingleton<AuthorizedUserCacheService>();
         builder.Services.AddHttpClient();
         builder.Services.AddScoped<TypoApiClientService>();

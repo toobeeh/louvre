@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using toobeeh.Louvre.Server.Database.Model;
 using toobeeh.Louvre.Server.Dto;
 
 namespace toobeeh.Louvre.Server.Authentication;
