@@ -1,3 +1,6 @@
 .idea
 **\obj
 launchSettings.json
+*.http
+*_louvre.json
+**\bin

@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Authentication;
+using toobeeh.Louvre.Server.Authentication;
+using toobeeh.Louvre.Server.Config;
+using toobeeh.Louvre.Server.Service;
+
 namespace toobeeh.Louvre.Server;
 
 public class Program
@@ -7,10 +12,21 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApi("louvre");
+
+        
+        // add typo authentication scheme for typo bearer token
+        builder.Services.AddAuthentication(TypoTokenAuthenticationHandler.Scheme)
+            .AddScheme<AuthenticationSchemeOptions, TypoTokenAuthenticationHandler>(
+                TypoTokenAuthenticationHandler.Scheme, null);
+
+        // add services
+        builder.Services.AddSingleton<AuthorizedUserCacheService>();
+        builder.Services.AddHttpClient();
+        builder.Services.AddScoped<TypoApiClientService>();
+        builder.Services.AddScoped<AuthorizationService>();
+        builder.Services.Configure<TypoApiConfig>(builder.Configuration.GetSection("TypoApi"));
 
         var app = builder.Build();
 
@@ -21,7 +37,6 @@ public class Program
         }
 
         app.UseAuthorization();
-
 
         app.MapControllers();
 
