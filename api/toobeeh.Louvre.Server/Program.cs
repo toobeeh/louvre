@@ -27,6 +27,7 @@ public class Program
         builder.Services.AddDbContext<AppDatabaseContext>();
         builder.Services.AddSingleton<AuthorizedUserCacheService>();
         builder.Services.AddHttpClient();
+        builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<TypoApiClientService>();
         builder.Services.AddScoped<AuthorizationService>();
         builder.Services.Configure<TypoApiConfig>(builder.Configuration.GetSection("TypoApi"));

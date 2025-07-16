@@ -14,17 +14,15 @@ namespace toobeeh.Louvre.Server.Controllers;
 [Route("users")]
 public class UsersController(
     ILogger<UsersController> logger,
-    AppDatabaseContext dbContext,
+    UserService userService,
     TypoApiClientService typoApiClientService
     ) : ControllerBase
 {
     
-    [HttpGet]
+    [HttpGet, Authorize]
     public async Task<IEnumerable<AuthorizedUserDto>> GetAuthorizedUsers()
     {
-        return await dbContext.Users
-            .Select(u => new AuthorizedUserDto(u.Id, u.Type, u.Name))
-            .ToListAsync();
+        return await userService.GetAllUsers();
     }
     
     [HttpPost, Authorize(Roles = "Administrator,Moderator")]
@@ -35,14 +33,12 @@ public class UsersController(
             throw new ArgumentException("Administrators are recognized via typo member flags and cannot be added here.");
         }
 
+        // fetch public user details from typo api to get name
         var user = await typoApiClientService
             .GetClient((url, client) => new MembersControllerClient(url, client))
             .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.Login));
-
-        dbContext.Users.Add(new UserEntity() { Id = userDto.Login, Type = userDto.UserType, Name = user.UserName});
-        await dbContext.SaveChangesAsync();
         
-        return new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName);
+        return await userService.AddUser(new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName));
     }
     
     [HttpGet("me")]
@@ -55,14 +51,7 @@ public class UsersController(
     [HttpDelete("{id}"), Authorize(Roles = "Administrator,Moderator")]
     public async Task<IActionResult> DeleteAuthorizedUser(string id)
     {
-        var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
-        if (user == null)
-        {
-            return NotFound(new { Message = $"User with ID {id} not found." });
-        }
-
-        dbContext.Users.Remove(user);
-        await dbContext.SaveChangesAsync();
+        await userService.DeleteUserByLogin(id);
 
         return NoContent(); // 204 No Content
     }

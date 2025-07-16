@@ -14,7 +14,7 @@ public class AuthorizationService(
     HttpClient httpClient, 
     IOptions<TypoApiConfig> apiOptions,
     AuthorizedUserCacheService authorizedUserCacheService,
-    AppDatabaseContext dbContext
+    UserService userService
     )
 {
     private readonly MembersControllerClient _membersClient = new(apiOptions.Value.BaseUrl, httpClient);
@@ -55,7 +55,7 @@ public class AuthorizationService(
         }
         
         // fetch user config from db
-        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == member.UserLogin);
+        var user = await userService.GetUserByLogin(member.UserLogin);
         if (user is null)
         {
             throw new AuthenticationException("User not authorized to use app");
