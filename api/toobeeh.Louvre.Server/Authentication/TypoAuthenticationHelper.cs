@@ -12,6 +12,7 @@ public class TypoAuthenticationHelper
         var claims = new[]
         {
             new Claim(ClaimTypes.Role, user.UserType.ToString()),
+            new Claim(ClaimTypes.Name, user.Name),
             new Claim(ClaimTypes.NameIdentifier, user.Login)
         };
         
@@ -29,6 +30,7 @@ public class TypoAuthenticationHelper
         }
 
         var login = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var name = principal.FindFirst(ClaimTypes.Name)?.Value;
         var parsed = Enum.TryParse<UserTypeEnum>(principal.FindFirst(ClaimTypes.Role)?.Value, out var parsedUserType);
 
         if (!parsed)
@@ -36,6 +38,6 @@ public class TypoAuthenticationHelper
             throw new ArgumentException("Invalid user type in principal");
         }
 
-        return new AuthorizedUserDto(login ?? string.Empty, parsedUserType);
+        return new AuthorizedUserDto(login ?? string.Empty, parsedUserType, name ?? string.Empty);
     }
 }

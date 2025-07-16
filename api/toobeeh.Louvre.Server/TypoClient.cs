@@ -1053,6 +1053,107 @@ namespace toobeeh.Louvre.TypoApiClient
         }
 
         /// <summary>
+        /// Get public info of a member by their login
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <param name="login">Member Login parameter</param>
+        /// <returns>The member with specified login</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<PublicMemberDto> GetPublicMemberInfoByLoginAsync(double login)
+        {
+            return GetPublicMemberInfoByLoginAsync(login, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get public info of a member by their login
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <param name="login">Member Login parameter</param>
+        /// <returns>The member with specified login</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<PublicMemberDto> GetPublicMemberInfoByLoginAsync(double login, System.Threading.CancellationToken cancellationToken)
+        {
+            if (login == null)
+                throw new System.ArgumentNullException("login");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "members/{login}/public"
+                    urlBuilder_.Append("members/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(login, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/public");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<PublicMemberDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Get an access token of a member
         /// </summary>
         /// <remarks>
@@ -8981,6 +9082,48 @@ namespace toobeeh.Louvre.TypoApiClient
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PublicMemberDto
+    {
+        /// <summary>
+        /// The member's connected discord account id
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("discordID", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string DiscordID { get; set; }
+
+        /// <summary>
+        /// The member's palantir accunt user name
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("userName", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// The member's palantir identification
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("userLogin", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string UserLogin { get; set; }
+
+        /// <summary>
+        /// Enum array containing the flags of the member
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("memberFlags", Required = Newtonsoft.Json.Required.Always, ItemConverterType = typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<memberFlags> MemberFlags { get; set; } = new System.Collections.ObjectModel.Collection<memberFlags>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class AccessTokenDto
     {
         /// <summary>
@@ -10539,6 +10682,48 @@ namespace toobeeh.Louvre.TypoApiClient
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum MemberFlags
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Admin")]
+        Admin = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Moderator")]
+        Moderator = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Patron")]
+        Patron = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Patronizer")]
+        Patronizer = 3,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Booster")]
+        Booster = 4,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"DropBan")]
+        DropBan = 5,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"PermaBan")]
+        PermaBan = 6,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Beta")]
+        Beta = 7,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"BubbleFarming")]
+        BubbleFarming = 8,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"UnlimitedCloud")]
+        UnlimitedCloud = 9,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ContentModerator")]
+        ContentModerator = 10,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"EmojiManagement")]
+        EmojiManagement = 11,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum memberFlags
     {
 
         [System.Runtime.Serialization.EnumMember(Value = @"Admin")]

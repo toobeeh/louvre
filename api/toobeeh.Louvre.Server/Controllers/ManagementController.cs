@@ -5,6 +5,8 @@ using toobeeh.Louvre.Server.Authentication;
 using toobeeh.Louvre.Server.Database;
 using toobeeh.Louvre.Server.Database.Model;
 using toobeeh.Louvre.Server.Dto;
+using toobeeh.Louvre.Server.Service;
+using toobeeh.Louvre.TypoApiClient;
 
 namespace toobeeh.Louvre.Server.Controllers;
 
@@ -12,7 +14,8 @@ namespace toobeeh.Louvre.Server.Controllers;
 [Route("management")]
 public class ManagementController(
     ILogger<ManagementController> logger,
-    AppDatabaseContext dbContext
+    AppDatabaseContext dbContext,
+    TypoApiClientService typoApiClientService
     ) : ControllerBase
 {
     
@@ -20,7 +23,7 @@ public class ManagementController(
     public async Task<IEnumerable<AuthorizedUserDto>> GetAuthorizedUsers()
     {
         return await dbContext.Users
-            .Select(u => new AuthorizedUserDto(u.Id, u.Type))
+            .Select(u => new AuthorizedUserDto(u.Id, u.Type, u.Name))
             .ToListAsync();
     }
     
@@ -32,14 +35,20 @@ public class ManagementController(
     }
     
     [HttpPost("users"), Authorize(Roles = "Administrator,Moderator")]
-    public async Task AuthorizeUser(AuthorizedUserDto userDto)
+    public async Task<AuthorizedUserDto> AuthorizeUser(AuthorizeUserDto userDto)
     {
         if (userDto.UserType == UserTypeEnum.Administrator)
         {
             throw new ArgumentException("Administrators are recognized via typo member flags.");
         }
 
-        dbContext.Users.Add(new UserEntity() { Id = userDto.Login, Type = userDto.UserType });
+        var user = await typoApiClientService
+            .GetClient((url, client) => new MembersControllerClient(url, client))
+            .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.Login));
+
+        dbContext.Users.Add(new UserEntity() { Id = userDto.Login, Type = userDto.UserType, Name = user.UserName});
         await dbContext.SaveChangesAsync();
+        
+        return new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName);
     }
 }

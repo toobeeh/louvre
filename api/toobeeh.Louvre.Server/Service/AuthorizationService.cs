@@ -49,7 +49,7 @@ public class AuthorizationService(
         if (member.MemberFlags.Contains(MemberFlags.Admin))
         {
             logger.LogDebug("User is an admin, authorizing without db check");
-            var adminUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Administrator);
+            var adminUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Administrator, member.UserName);
             authorizedUserCacheService.CacheUser(accessToken, adminUser);
             return adminUser;
         }
@@ -61,7 +61,7 @@ public class AuthorizationService(
             throw new AuthenticationException("User not authorized to use app");
         }
         
-        var authorizedUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Contributor);
+        var authorizedUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Contributor, member.UserName);
         authorizedUserCacheService.CacheUser(accessToken, authorizedUser);
         
         logger.LogDebug("User fetched and cached for future requests");

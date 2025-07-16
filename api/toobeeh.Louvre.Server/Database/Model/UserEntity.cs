@@ -8,4 +8,6 @@ public class UserEntity
     public string Id { get; set; }
     
     public UserTypeEnum Type { get; set; }
+    
+    public string Name { get; set; }
 }
