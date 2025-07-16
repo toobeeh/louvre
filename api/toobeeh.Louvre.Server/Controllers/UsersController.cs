@@ -11,15 +11,15 @@ using toobeeh.Louvre.TypoApiClient;
 namespace toobeeh.Louvre.Server.Controllers;
 
 [ApiController]
-[Route("management")]
-public class ManagementController(
-    ILogger<ManagementController> logger,
+[Route("users")]
+public class UsersController(
+    ILogger<UsersController> logger,
     AppDatabaseContext dbContext,
     TypoApiClientService typoApiClientService
     ) : ControllerBase
 {
     
-    [HttpGet("users")]
+    [HttpGet]
     public async Task<IEnumerable<AuthorizedUserDto>> GetAuthorizedUsers()
     {
         return await dbContext.Users
@@ -27,19 +27,12 @@ public class ManagementController(
             .ToListAsync();
     }
     
-    [HttpGet("users/me")]
-    public Task<AuthorizedUserDto> GetCurrentUser()
-    {
-        var user = TypoAuthenticationHelper.FromPrincipal(User);
-        return Task.FromResult(user);
-    }
-    
-    [HttpPost("users"), Authorize(Roles = "Administrator,Moderator")]
+    [HttpPost, Authorize(Roles = "Administrator,Moderator")]
     public async Task<AuthorizedUserDto> AuthorizeUser(AuthorizeUserDto userDto)
     {
         if (userDto.UserType == UserTypeEnum.Administrator)
         {
-            throw new ArgumentException("Administrators are recognized via typo member flags.");
+            throw new ArgumentException("Administrators are recognized via typo member flags and cannot be added here.");
         }
 
         var user = await typoApiClientService
@@ -50,5 +43,27 @@ public class ManagementController(
         await dbContext.SaveChangesAsync();
         
         return new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName);
+    }
+    
+    [HttpGet("me")]
+    public Task<AuthorizedUserDto> GetCurrentUser()
+    {
+        var user = TypoAuthenticationHelper.FromPrincipal(User);
+        return Task.FromResult(user);
+    }
+    
+    [HttpDelete("{id}"), Authorize(Roles = "Administrator,Moderator")]
+    public async Task<IActionResult> DeleteAuthorizedUser(string id)
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id == id);
+        if (user == null)
+        {
+            return NotFound(new { Message = $"User with ID {id} not found." });
+        }
+
+        dbContext.Users.Remove(user);
+        await dbContext.SaveChangesAsync();
+
+        return NoContent(); // 204 No Content
     }
 }
