@@ -1,6 +1,8 @@
 // source: https://raw.githubusercontent.com/toobeeh/skribbltypo/refs/heads/main/src/util/gif/canvasCommandProcessor.ts
+// slightly modified to node types
 
 import {Color} from "./color";
+import {CanvasRenderingContext2D, ImageData} from "canvas";
 
 export class CanvasCommandProcessor {
 
@@ -9,7 +11,7 @@ export class CanvasCommandProcessor {
     private readonly _thicknessMin = 4;
     private readonly _thicknessMax = 40;
 
-    constructor(private readonly _canvasContext: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
+    constructor(private readonly _canvasContext: CanvasRenderingContext2D) {
         this._width = _canvasContext.canvas.width;
         this._height = _canvasContext.canvas.height;
 
