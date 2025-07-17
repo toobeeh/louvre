@@ -27,10 +27,14 @@ public class Program
         builder.Services.AddDbContext<AppDatabaseContext>();
         builder.Services.AddSingleton<AuthorizedUserCacheService>();
         builder.Services.AddHttpClient();
-        builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<UsersService>();
+        builder.Services.AddScoped<RendersService>();
+        builder.Services.AddScoped<GifRenderService>();
         builder.Services.AddScoped<TypoApiClientService>();
         builder.Services.AddScoped<AuthorizationService>();
+        builder.Services.AddScoped<TypoCloudService>();
         builder.Services.Configure<TypoApiConfig>(builder.Configuration.GetSection("TypoApi"));
+        builder.Services.Configure<RendererConfig>(builder.Configuration.GetSection("Renderer"));
 
         var app = builder.Build();
 

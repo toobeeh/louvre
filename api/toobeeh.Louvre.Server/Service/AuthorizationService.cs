@@ -14,7 +14,7 @@ public class AuthorizationService(
     HttpClient httpClient, 
     IOptions<TypoApiConfig> apiOptions,
     AuthorizedUserCacheService authorizedUserCacheService,
-    UserService userService
+    UsersService usersService
     )
 {
     private readonly MembersControllerClient _membersClient = new(apiOptions.Value.BaseUrl, httpClient);
@@ -55,13 +55,13 @@ public class AuthorizationService(
         }
         
         // fetch user config from db
-        var user = await userService.GetUserByLogin(member.UserLogin);
+        var user = await usersService.GetUserByLogin(member.UserLogin);
         if (user is null)
         {
             throw new AuthenticationException("User not authorized to use app");
         }
         
-        var authorizedUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Contributor, member.UserName);
+        var authorizedUser = new AuthorizedUserDto(member.UserLogin, user.UserType, member.UserName);
         authorizedUserCacheService.CacheUser(accessToken, authorizedUser);
         
         logger.LogDebug("User fetched and cached for future requests");

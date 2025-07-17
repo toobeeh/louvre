@@ -4,7 +4,7 @@ using toobeeh.Louvre.Server.Dto;
 
 namespace toobeeh.Louvre.Server.Service;
 
-public class UserService(ILogger<UserService> logger, AppDatabaseContext db)
+public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
 {
     public async Task<AuthorizedUserDto?> GetUserByLogin(string login)
     {

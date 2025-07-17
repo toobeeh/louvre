@@ -36,6 +36,6 @@ public class TypoTokenAuthenticationHandler : AuthenticationHandler<Authenticati
 
         var token = authHeader["Bearer ".Length..].Trim();
         var user = await _authorizationService.GetAuthorizedUser(token);
-        return AuthenticateResult.Success(TypoAuthenticationHelper.CreateTicket(user));
+        return AuthenticateResult.Success(TypoAuthenticationHelper.CreateTicket(user, token));
     }
 }

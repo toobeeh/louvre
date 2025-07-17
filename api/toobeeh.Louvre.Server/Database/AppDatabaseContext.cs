@@ -17,7 +17,7 @@ public class AppDatabaseContext : DbContext
     }
 
     public DbSet<UserEntity> Users { get; set; }
-    public DbSet<GifEntity> Gifs { get; set; }
+    public DbSet<RenderEntity> Renders { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using toobeeh.Louvre.Server.Authentication;
-using toobeeh.Louvre.Server.Database;
 using toobeeh.Louvre.Server.Database.Model;
 using toobeeh.Louvre.Server.Dto;
 using toobeeh.Louvre.Server.Service;
@@ -14,7 +12,7 @@ namespace toobeeh.Louvre.Server.Controllers;
 [Route("users")]
 public class UsersController(
     ILogger<UsersController> logger,
-    UserService userService,
+    UsersService usersService,
     TypoApiClientService typoApiClientService
     ) : ControllerBase
 {
@@ -22,12 +20,16 @@ public class UsersController(
     [HttpGet, Authorize]
     public async Task<IEnumerable<AuthorizedUserDto>> GetAuthorizedUsers()
     {
-        return await userService.GetAllUsers();
+        logger.LogTrace("GetAuthorizedUsers()");
+        
+        return await usersService.GetAllUsers();
     }
     
     [HttpPost, Authorize(Roles = "Administrator,Moderator")]
     public async Task<AuthorizedUserDto> AuthorizeUser(AuthorizeUserDto userDto)
     {
+        logger.LogTrace("AuthorizeUser({UserDto})", userDto);
+        
         if (userDto.UserType == UserTypeEnum.Administrator)
         {
             throw new ArgumentException("Administrators are recognized via typo member flags and cannot be added here.");
@@ -38,20 +40,24 @@ public class UsersController(
             .GetClient((url, client) => new MembersControllerClient(url, client))
             .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.Login));
         
-        return await userService.AddUser(new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName));
+        return await usersService.AddUser(new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName));
     }
     
     [HttpGet("me")]
     public Task<AuthorizedUserDto> GetCurrentUser()
     {
-        var user = TypoAuthenticationHelper.FromPrincipal(User);
+        logger.LogTrace("GetCurrentUser()");
+        
+        var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
         return Task.FromResult(user);
     }
     
     [HttpDelete("{id}"), Authorize(Roles = "Administrator,Moderator")]
     public async Task<IActionResult> DeleteAuthorizedUser(string id)
     {
-        await userService.DeleteUserByLogin(id);
+        logger.LogTrace("DeleteAuthorizedUser({Id})", id);
+        
+        await usersService.DeleteUserByLogin(id);
 
         return NoContent(); // 204 No Content
     }

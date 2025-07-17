@@ -7,13 +7,14 @@ namespace toobeeh.Louvre.Server.Authentication;
 
 public class TypoAuthenticationHelper
 {
-    public static AuthenticationTicket CreateTicket(AuthorizedUserDto user)
+    public static AuthenticationTicket CreateTicket(AuthorizedUserDto user, string token)
     {
         var claims = new[]
         {
             new Claim(ClaimTypes.Role, user.UserType.ToString()),
             new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.NameIdentifier, user.Login)
+            new Claim(ClaimTypes.NameIdentifier, user.Login),
+            new Claim("typoAccessToken", token)
         };
         
         var identity = new ClaimsIdentity(claims, TypoTokenAuthenticationHandler.Scheme);
@@ -22,7 +23,7 @@ public class TypoAuthenticationHelper
         return ticket;
     }
     
-    public static AuthorizedUserDto FromPrincipal(ClaimsPrincipal principal)
+    public static AuthorizedUserDto GetUserFromPrincipal(ClaimsPrincipal principal)
     {
         if (principal == null || !principal.Identity.IsAuthenticated)
         {
@@ -39,5 +40,21 @@ public class TypoAuthenticationHelper
         }
 
         return new AuthorizedUserDto(login ?? string.Empty, parsedUserType, name ?? string.Empty);
+    }
+    
+    public static string GetAccessTokenFromPrincipal(ClaimsPrincipal principal)
+    {
+        if (principal == null || !principal.Identity.IsAuthenticated)
+        {
+            throw new ArgumentException("Invalid principal");
+        }
+
+        var token = principal.FindFirst("typoAccessToken")?.Value;
+        if (string.IsNullOrEmpty(token))
+        {
+            throw new ArgumentException("Access token not found in principal");
+        }
+
+        return token;
     }
 }

@@ -12,6 +12,7 @@
       "ESNext"
     ],
     "types": ["Node"],
-    "allowJs": false
+    "allowJs": false,
+    "outDir": "./dist",
   }
 }
