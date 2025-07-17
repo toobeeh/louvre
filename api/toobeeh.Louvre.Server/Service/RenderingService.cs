@@ -5,22 +5,26 @@ using toobeeh.Louvre.Server.Config;
 
 namespace toobeeh.Louvre.Server.Service;
 
-public class GifRenderService(ILogger<GifRenderService> logger, IOptions<RendererConfig> options) 
+public class RenderingService(ILogger<RenderingService> logger, IOptions<RendererConfig> options) 
 {
-    public record GifRenderResult(Ulid RenderId, byte[] GifContent);
+    public record GifRenderResult(Ulid RenderId, byte[] GifContent, int Duration, int Fps, int Optimization);
     
-    public async Task<GifRenderResult> RenderGif(double[][] commands, int? duration = null, int? fps = null, int? optimization = null)
+    public async Task<GifRenderResult> RenderGif(Ulid id, double[][] commands, int? duration = null, int? fps = null, int? optimization = null)
     {
-        logger.LogTrace("RenderGif({Commands})", commands.Length);
+        logger.LogTrace("RenderGif({Id}, {CommandsLength}, {Duration}, {Fps}, {Optimization})", id, commands.Length, duration, fps, optimization);
+        
+        var config = options.Value;
+        var durationValue = duration ?? config.DefaultDuration;
+        var fpsValue = fps ?? config.DefaultFps;
+        var optimizationValue = optimization ?? config.DefaultOptimization;
 
-        var renderId = Ulid.NewUlid();
-        var gifBytes = await RunTypoRenderer(commands, renderId, duration, fps);
-        gifBytes = await RunGifOptimization(gifBytes, renderId, optimization);
+        var gifBytes = await RunTypoRenderer(commands, id, durationValue, fpsValue);
+        gifBytes = await RunGifOptimization(gifBytes, id, optimizationValue);
 
-        return new GifRenderResult(renderId, gifBytes);
+        return new GifRenderResult(id, gifBytes, durationValue, fpsValue, optimizationValue);
     }
     
-    private async Task<byte[]> RunTypoRenderer(double[][] commands, Ulid renderId, int? duration = null, int? fps = null)
+    private async Task<byte[]> RunTypoRenderer(double[][] commands, Ulid renderId, int duration, int fps)
     {
         logger.LogTrace("RunTypoRenderer({Commands}, {RenderId})", commands.Length, renderId);
         
@@ -30,7 +34,7 @@ public class GifRenderService(ILogger<GifRenderService> logger, IOptions<Rendere
 
         var config = options.Value;
         var gifOutputPath = Path.Combine(config.TempDirectory, $"{renderId}-render.gif");
-        var args = $"{config.RendererJsLocation} --commandsSkdPath={skdPath} --gifOutputPath={gifOutputPath} --gifFramerate={fps ?? config.DefaultFps} --gifDuration={(duration ?? config.DefaultDuration) * 1000}";
+        var args = $"{config.RendererJsLocation} --commandsSkdPath={skdPath} --gifOutputPath={gifOutputPath} --gifFramerate={fps} --gifDuration={duration * 1000}";
         
         logger.LogDebug("Running command: {Command}", args);
         BufferedCommandResult? result = null;
@@ -67,7 +71,7 @@ public class GifRenderService(ILogger<GifRenderService> logger, IOptions<Rendere
         return gifContent;
     }
 
-    private async Task<byte[]> RunGifOptimization(byte[] sourceGif, Ulid renderId, int? optimization = null)
+    private async Task<byte[]> RunGifOptimization(byte[] sourceGif, Ulid renderId, int optimization)
     {
         logger.LogTrace("RunGifOptimization({RenderId})", renderId);
         
@@ -77,7 +81,7 @@ public class GifRenderService(ILogger<GifRenderService> logger, IOptions<Rendere
         
         var config = options.Value;
         var optimizedGifPath = Path.Combine(config.TempDirectory, $"{renderId}-optimized.gif");
-        var args = $"--optimize={optimization ?? config.DefaultOptimization} {sourceGifPath} -o {optimizedGifPath}";
+        var args = $"--optimize={optimization} {sourceGifPath} -o {optimizedGifPath}";
         
         logger.LogDebug("Running optimization command: {Command}", args);
         BufferedCommandResult? result = null;

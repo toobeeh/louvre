@@ -11,8 +11,8 @@ namespace toobeeh.Louvre.Server.Controllers;
 public class RendersController(
     ILogger<RendersController> logger,
     RendersService rendersService,
-    GifRenderService gifRenderService,
-    TypoCloudService typoCloudService
+    TypoCloudService typoCloudService,
+    RenderSubmissionDispatcherService renderSubmissionDispatcherService
     ) : ControllerBase
 {
     
@@ -24,21 +24,29 @@ public class RendersController(
         return await rendersService.FindRenders(filter);
     }
     
-    [HttpPost("add"), Authorize(Roles = "Moderator,Administrator,Contributor")]
-    public async Task<Ulid> AddRender(AddRenderDto renderDto)
+    [HttpPost("submit"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    public async Task<RenderInfoDto> Submit(RenderSubmissionDto renderSubmissionDto)
     {
-        logger.LogTrace("AddRender({RenderDto})", renderDto);
+        logger.LogTrace("AddRender({RenderDto})", renderSubmissionDto);
 
         var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
         var token = TypoAuthenticationHelper.GetAccessTokenFromPrincipal(User);
         
-        var cloudImage = await typoCloudService.GetCloudImage(user.Login, token, renderDto.CloudId);
-        var commands = await typoCloudService.GetSkdFromCloud(cloudImage);
-        var image = await typoCloudService.GetImageFromCloud(cloudImage);
-        var gif = await gifRenderService.RenderGif(commands, renderDto.DurationSeconds, renderDto.FramesPerSecond, renderDto.OptimizationLevelPercent);
-        
-        await System.IO.File.WriteAllBytesAsync("/tmp/" + gif.RenderId + ".gif", gif.GifContent);
+        // fetch image details from typo cloud
+        var cloudImage = await typoCloudService.GetCloudImage(user.Login, token, renderSubmissionDto.CloudId);
 
-        return gif.RenderId;
+        // submit as rendering
+        var render = await rendersService.AddRenderRequest(cloudImage, user.Login);
+        
+        // run render in background, will set to render finished when done
+        renderSubmissionDispatcherService
+            .EnqueueSubmission(new RenderSubmissionDispatcherService.RenderSubmission(
+                cloudImage,
+                render,
+                renderSubmissionDto,
+                user
+            ));
+
+        return render;
     }
 }

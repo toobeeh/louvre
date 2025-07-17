@@ -5,16 +5,8 @@ namespace toobeeh.Louvre.Server.Database;
 
 public class AppDatabaseContext : DbContext
 {
-    private const string Path = "./data";
-    private static string DbPath => System.IO.Path.Combine(Path, "app.db");
-
-    public static void EnsureDatabaseExists()
-    {
-        Directory.CreateDirectory(Path);
-        var ctx = new AppDatabaseContext();
-        ctx.Database.EnsureCreated();
-        ctx.Dispose();
-    }
+    public readonly string DbDirectory = "./data";
+    public string DbPath => Path.Combine(DbDirectory, "app.db");
 
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<RenderEntity> Renders { get; set; }

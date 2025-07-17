@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Minio.Exceptions;
 using toobeeh.Louvre.Server.Database;
+using toobeeh.Louvre.Server.Database.Model;
 using toobeeh.Louvre.Server.Dto;
+using toobeeh.Louvre.TypoApiClient;
 
 namespace toobeeh.Louvre.Server.Service;
 
-public class RendersService(ILogger<RendersService> logger, AppDatabaseContext db)
+public class RendersService(ILogger<RendersService> logger, AppDatabaseContext db, StorageService storageService)
 {
     public async Task<IEnumerable<RenderInfoDto>> FindRenders(FindRendersFilterDto filter)
     {
@@ -55,13 +58,83 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
 
         // map to dto and order
         return results
-            .Select(render => new RenderInfoDto(
-                Ulid.Parse(render.Info.Id),
-                render.Info.ApprovedTitle ?? render.Info.Title,
-                render.User?.Name ?? render.Info.Drawer,
-                render.Info.ApprovedTitle is not null,
-                render.User is not null))
+            .Select(render => this.MapToDto(render.Info, render.User?.Name))
             .OrderByDescending(render => render.Id)
             .ToList();
+    }
+
+    public async Task<RenderInfoDto> AddRenderRequest(CloudImageDto image, string ownerLogin)
+    {
+        logger.LogTrace("AddRenderRequest({Image})", image);
+
+        var id = Ulid.NewUlid();
+        
+        var entity = db.Renders.Add(new RenderEntity()
+        {
+            Id = id.ToString(),
+            Title = image.Name,
+            ApprovedTitle = null,
+            Approved = false,
+            Drawer = image.Author,
+            ApprovedDrawerLogin = null,
+            Language = "", // TODO
+            Rendered = false,
+            OwnerCloudId = image.Id,
+            CloudOwnerLogin = ownerLogin,
+            RenderDuration = null,
+            RenderFps = null,
+            RenderOptimization = null
+        });
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException e)
+        {
+            throw new PreconditionFailedException("Render request already exists.", e);
+        }
+
+        return MapToDto(entity.Entity, null);
+    }
+
+    public async Task<RenderInfoDto> SetRenderCompleted(RenderingService.GifRenderResult gif)
+    {
+        logger.LogTrace("SetRenderCompleted({Gif})", gif);
+        
+        var render = db.Renders.FirstOrDefault(r => r.Id == gif.RenderId.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for completion: {RenderId}", gif.RenderId);
+            throw new InvalidOperationException($"Render with ID {gif.RenderId} not found.");
+        }
+        
+        render.Rendered = true;
+        render.RenderDuration = gif.Duration;
+        render.RenderFps = gif.Fps;
+        render.RenderOptimization = gif.Optimization;
+        
+        var entity = db.Renders.Update(render);
+        await db.SaveChangesAsync();
+        
+        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+            ? null
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+        
+        return MapToDto(entity.Entity, drawerName);
+    }
+    
+    private RenderInfoDto MapToDto(RenderEntity render, string? drawerName)
+    {
+        return new RenderInfoDto(
+            Ulid.Parse(render.Id),
+            render.ApprovedTitle ?? render.Title,
+            drawerName ?? render.Drawer,
+            render.ApprovedTitle is not null,
+            drawerName is not null,
+            render.Rendered,
+            storageService.GetUrlForBucket(StorageService.GifBucketName, $"{render.Id}.gif"),
+            storageService.GetUrlForBucket(StorageService.ThumbnailBucketName, $"{render.Id}.png")
+        );
     }
 }

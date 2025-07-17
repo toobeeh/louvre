@@ -6,3 +6,4 @@ launchSettings.json
 **\bin
 *.db*
 toobeeh.Louvre.Server\data
+*.sln
