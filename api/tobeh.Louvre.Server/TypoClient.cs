@@ -10067,6 +10067,19 @@ namespace tobeh.Louvre.TypoApiClient
         public string Author { get; set; }
 
         /// <summary>
+        /// Whether the image was drawn by the owner
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("own", Required = Newtonsoft.Json.Required.Always)]
+        public bool Own { get; set; }
+
+        /// <summary>
+        /// Lobby language of the image
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("language", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Language { get; set; }
+
+        /// <summary>
         /// Image creation timestamp ms
         /// </summary>
         [Newtonsoft.Json.JsonProperty("createdAt", Required = Newtonsoft.Json.Required.Always)]

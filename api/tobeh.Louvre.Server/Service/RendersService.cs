@@ -76,8 +76,8 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
             ApprovedTitle = null,
             Approved = false,
             Drawer = image.Author,
-            ApprovedDrawerLogin = null,
-            Language = "", // TODO
+            ApprovedDrawerLogin = image.Own ? ownerLogin : null,
+            Language = image.Language,
             Rendered = false,
             OwnerCloudId = image.Id,
             CloudOwnerLogin = ownerLogin,
