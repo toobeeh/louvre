@@ -1,6 +1,7 @@
 services:
+
   minio:
-    container_name: minio
+    container_name: louvre-minio
     image: docker.io/bitnami/minio
     ports:
       - "9000:9000"
@@ -9,5 +10,17 @@ services:
       MINIO_ROOT_USER: ROOTNAME
       MINIO_ROOT_PASSWORD: CHANGEME123
     volumes:
-      - ~/minio/data:/data
+      - ./data/minio:/data
     command: server /data --console-address ":9001"
+
+  api:
+    container_name: louvre-api
+    depends_on:
+      - minio
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "5000:8080"
+    volumes:
+      - ./api/tobeh.Louvre.Server/appsettings.json:/app/appsettings.json

@@ -48,7 +48,10 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllers();
-        builder.Services.AddOpenApi("louvre");
+        builder.Services.AddOpenApi("louvre", options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
         
         // add typo authentication scheme for typo bearer token
         builder.Services.AddAuthentication(TypoTokenAuthenticationHandler.Scheme)
@@ -57,13 +60,12 @@ public class Program
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
-
+        app.MapOpenApi();
         app.UseAuthorization();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/openapi/louvre.json", "Louvre API");
+        });
 
         app.MapControllers();
 

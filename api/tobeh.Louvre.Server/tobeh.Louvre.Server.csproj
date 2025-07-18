@@ -24,6 +24,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="Ulid" Version="1.3.4" />
   </ItemGroup>
   <Target Name="GenerateTypoApiClient" BeforeTargets="BeforeBuild">

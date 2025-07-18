@@ -1,4 +1,5 @@
 using System.Security.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using tobeh.Louvre.Server.Config;
 using tobeh.Louvre.Server.Database.Model;
@@ -56,7 +57,7 @@ public class AuthorizationService(
         var user = await usersService.GetUserByLogin(member.UserLogin);
         if (user is null)
         {
-            throw new AuthenticationException("User not authorized to use app");
+            throw new AuthenticationFailureException("User not authorized to use app");
         }
         
         var authorizedUser = new AuthorizedUserDto(member.UserLogin, user.UserType, member.UserName);
