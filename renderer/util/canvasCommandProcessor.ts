@@ -1,5 +1,6 @@
 // source: https://raw.githubusercontent.com/toobeeh/skribbltypo/refs/heads/main/src/util/gif/canvasCommandProcessor.ts
 // slightly modified to node types
+// slightly modified to get dimensions
 
 import {Color} from "./color";
 import {CanvasRenderingContext2D, ImageData} from "canvas";
@@ -10,6 +11,14 @@ export class CanvasCommandProcessor {
     private readonly _height: number;
     private readonly _thicknessMin = 4;
     private readonly _thicknessMax = 40;
+
+    public get width(): number {
+        return this._width;
+    }
+
+    public get height(): number {
+        return this._height;
+    }
 
     constructor(private readonly _canvasContext: CanvasRenderingContext2D) {
         this._width = _canvasContext.canvas.width;

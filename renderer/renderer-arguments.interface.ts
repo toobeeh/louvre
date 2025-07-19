@@ -3,4 +3,5 @@ export interface IRendererArguments {
     gifOutputPath: string; // path where the rendered gif should be saved
     gifDuration: number; // duration of the gif in milliseconds
     gifFramerate: number; // framerate of the gif in frames per second
+    watermarkPath?: string; // optional path to a watermark image
 }
