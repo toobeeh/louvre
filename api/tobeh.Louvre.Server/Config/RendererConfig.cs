@@ -9,4 +9,5 @@ public class RendererConfig
     public required int DefaultDuration { get; init; }
     public required int DefaultOptimization { get; init; }
     public required int SubmissionConcurrency { get; init; }
+    public string? WatermarkLocation { get; init; }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
+using Minio.Exceptions;
 using tobeh.Louvre.Server.Config;
 
 namespace tobeh.Louvre.Server.Service;
@@ -41,6 +42,44 @@ public class StorageService(
             .WithContentType("image/png")
             .WithObjectSize(stream.Length);
         await minioClient.PutObjectAsync(put);
+    }
+    
+    public async Task<bool> TryRemoveGif(Ulid id)
+    {
+        logger.LogTrace("TryRemoveGif({Id})", id);
+        
+        try
+        {
+            var remove = new RemoveObjectArgs()
+                .WithBucket(GifBucketName)
+                .WithObject($"{id.ToString()}.gif");
+            await minioClient.RemoveObjectAsync(remove);
+            return true;
+        }
+        catch (MinioException e) when (e.Message.Contains("NoSuchKey"))
+        {
+            // object does not exist, nothing to remove
+            return false;
+        }
+    }
+    
+    public async Task<bool> TryRemoveThumbnail(Ulid id)
+    {
+        logger.LogTrace("TryRemoveThumbnail({Id})", id);
+        
+        try
+        {
+            var remove = new RemoveObjectArgs()
+                .WithBucket(ThumbnailBucketName)
+                .WithObject($"{id.ToString()}.png");
+            await minioClient.RemoveObjectAsync(remove);
+            return true;
+        }
+        catch (MinioException e) when (e.Message.Contains("NoSuchKey"))
+        {
+            // object does not exist, nothing to remove
+            return false;
+        }
     }
     
     public string GetUrlForBucket(string bucketName, string objectName)

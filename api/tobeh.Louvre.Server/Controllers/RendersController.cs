@@ -1,8 +1,10 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using tobeh.Louvre.Server.Authentication;
-using tobeh.Louvre.Server.Dto;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Service;
+using tobeh.Louvre.Server.Service.Data;
 
 namespace tobeh.Louvre.Server.Controllers;
 
@@ -10,22 +12,24 @@ namespace tobeh.Louvre.Server.Controllers;
 [Route("renders")]
 public class RendersController(
     ILogger<RendersController> logger,
+    IMapper mapper,
     RendersService rendersService,
     TypoCloudService typoCloudService,
-    RenderSubmissionDispatcherService renderSubmissionDispatcherService
+    RenderTaskDispatcherService renderTaskDispatcherService,
+    StorageService storageService
     ) : ControllerBase
 {
     
     [HttpPost, Authorize(Roles = "Moderator,Administrator,Contributor")]
-    public async Task<IEnumerable<RenderInfoDto>> FindRenders(FindRendersFilterDto filter)
+    public async Task<IEnumerable<RenderPreviewDto>> FindRenders(FindRendersFilterDto filter)
     {
         logger.LogTrace("FindRenders({Filter})", filter);
         
-        return await rendersService.FindRenders(filter);
+        return mapper.Map<IEnumerable<RenderPreviewDto>>(await rendersService.FindRenders(filter));
     }
     
     [HttpPost("submit"), Authorize(Roles = "Moderator,Administrator,Contributor")]
-    public async Task<RenderInfoDto> Submit(RenderSubmissionDto renderSubmissionDto)
+    public async Task<RenderPreviewDto> Submit(RenderSubmissionDto renderSubmissionDto)
     {
         logger.LogTrace("AddRender({RenderDto})", renderSubmissionDto);
 
@@ -39,14 +43,95 @@ public class RendersController(
         var render = await rendersService.AddRenderRequest(cloudImage, user.Login);
         
         // run render in background, will set to render finished when done
-        renderSubmissionDispatcherService
-            .EnqueueSubmission(new RenderSubmissionDispatcherService.RenderSubmission(
+        renderTaskDispatcherService.EnqueueSubmission(new RenderSubmissionData(
                 cloudImage,
                 render,
                 renderSubmissionDto,
                 user
             ));
 
-        return render;
+        return mapper.Map<RenderPreviewDto>(render);
+    }
+
+    [HttpGet("{id}"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    public async Task<RenderInfoDto> GetRender(Ulid id)
+    {
+        logger.LogTrace("GetRender({Id})", id);
+        
+        var render = await rendersService.GetRenderById(id);
+
+        return mapper.Map<RenderInfoDto>(render);
+    }
+
+    [HttpDelete("{id}"), Authorize(Roles = "Moderator,Administrator")]
+    public async Task<IActionResult> RemoveRender(Ulid id)
+    {
+        logger.LogTrace("RemoveRender({Id})", id);
+        
+        await rendersService.RemoveRender(id);
+        await storageService.TryRemoveGif(id);
+        await storageService.TryRemoveThumbnail(id);
+
+        return NoContent();
+    }
+    
+    [HttpPatch("{id}/propose/drawer"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    public async Task<RenderInfoDto> ProposeRenderDrawer(Ulid id, ProposeRenderDrawerDto proposeRenderDrawerDto)
+    {
+        logger.LogTrace("ProposeRenderDrawer({Id})", id);
+        
+        var render = await rendersService.ProposeRenderDetails(id, proposeRenderDrawerDto.DrawerLogin, null);
+        return mapper.Map<RenderInfoDto>(render);
+    }
+    
+    [HttpPatch("{id}/propose/title"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    public async Task<RenderInfoDto> ProposeRenderTitle(Ulid id, ProposeRenderTitleDto proposeRenderTitleDto)
+    {
+        logger.LogTrace("ProposeRenderTitle({Id})", id);
+        
+        var render = await rendersService.ProposeRenderDetails(id, null, proposeRenderTitleDto.Title);
+        return mapper.Map<RenderInfoDto>(render);
+    }
+
+    [HttpPatch("{id}/approve"), Authorize(Roles = "Moderator,Administrator")]
+    public async Task<RenderInfoDto> ApproveRender(Ulid id)
+    {
+        logger.LogTrace("ApproveRender({Id})", id);
+        
+        var render = await rendersService.ApproveRender(id);
+        return mapper.Map<RenderInfoDto>(render);
+    }
+
+    [HttpPatch("{id}/unapprove"), Authorize(Roles = "Moderator,Administrator")]
+    public async Task<RenderInfoDto> UnapproveRender(Ulid id)
+    {
+        logger.LogTrace("UnapproveRender({Id})", id);
+        
+        var render = await rendersService.UnapproveRender(id);
+        return mapper.Map<RenderInfoDto>(render);
+    }
+
+    [HttpPatch("{id}/rerender"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    public async Task<RenderInfoDto> RerenderRender(Ulid id, RenderParametersDto renderParametersDto)
+    {
+        logger.LogTrace("RerenderRender({Id})", id);
+
+        var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
+        var token = TypoAuthenticationHelper.GetAccessTokenFromPrincipal(User);
+        
+        // reset render to rerendering state
+        var render = await rendersService.MarkAsRerendering(id);
+        
+        // fetch image details from typo cloud
+        var cloudImage = await typoCloudService.GetCloudImage(user.Login, token, render.CloudId);
+        
+        // run rerender in background, will set to render finished when done
+        renderTaskDispatcherService.EnqueueRerender(new RerenderRequestData(
+            render,
+            renderParametersDto,
+            cloudImage
+        ));
+        
+        return mapper.Map<RenderInfoDto>(render);
     }
 }

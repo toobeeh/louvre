@@ -37,8 +37,6 @@ const frameDelay = 1/args.gifFramerate * 1000; // in milliseconds
 const frameCount = args.gifDuration / frameDelay; // total number of frames to render
 const commandResolution = Math.max(1,Math.floor(commands.length / frameCount));
 
-args.watermarkPath = "C:\\Users\\tobeh\\Desktop\\typo\\icons\\64MaxFit.png";
-
 /* run async  */
 (async () => {
 

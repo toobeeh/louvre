@@ -1,10 +1,12 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Minio;
 using tobeh.Louvre.Server.Authentication;
 using tobeh.Louvre.Server.Config;
 using tobeh.Louvre.Server.Database;
 using tobeh.Louvre.Server.Host;
+using tobeh.Louvre.Server.Mapper;
 using tobeh.Louvre.Server.Service;
 
 namespace tobeh.Louvre.Server;
@@ -28,7 +30,7 @@ public class Program
         
             builder.Services.AddDbContext<AppDatabaseContext>();
             builder.Services.AddSingleton<AuthorizedUserCacheService>();
-            builder.Services.AddSingleton<RenderSubmissionDispatcherService>();
+            builder.Services.AddSingleton<RenderTaskDispatcherService>();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<UsersService>();
             builder.Services.AddScoped<RendersService>();
@@ -37,17 +39,21 @@ public class Program
             builder.Services.AddScoped<TypoApiClientService>();
             builder.Services.AddScoped<AuthorizationService>();
             builder.Services.AddScoped<TypoCloudService>();
-            builder.Services.AddScoped<RenderSubmissionWorkerService>();
+            builder.Services.AddScoped<RenderTaskWorkerService>();
             builder.Services.Configure<TypoApiConfig>(builder.Configuration.GetSection("TypoApi"));
             builder.Services.Configure<RendererConfig>(builder.Configuration.GetSection("Renderer"));
             builder.Services.Configure<S3Config>(builder.Configuration.GetSection("S3"));
+            builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             
             builder.Services.AddHostedService<MinioBucketSetupService>();
             builder.Services.AddHostedService<DatabaseSetupService>();
+
+            builder.Services.AddAutoMapper(config => config.AddProfile(typeof(MapperProfile)));
         }
 
         // Add services to the container.
         builder.Services.AddControllers();
+        
         builder.Services.AddOpenApi("louvre", options =>
         {
             options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();

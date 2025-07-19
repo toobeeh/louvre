@@ -2,14 +2,14 @@ using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Extensions.Options;
 using tobeh.Louvre.Server.Config;
+using tobeh.Louvre.Server.Service.Data;
 
 namespace tobeh.Louvre.Server.Service;
 
 public class RenderingService(ILogger<RenderingService> logger, IOptions<RendererConfig> options) 
 {
-    public record GifRenderResult(Ulid RenderId, byte[] GifContent, int Duration, int Fps, int Optimization);
     
-    public async Task<GifRenderResult> RenderGif(Ulid id, double[][] commands, int? duration = null, int? fps = null, int? optimization = null)
+    public async Task<GifRenderResultData> RenderGif(Ulid id, double[][] commands, int? duration = null, int? fps = null, int? optimization = null)
     {
         logger.LogTrace("RenderGif({Id}, {CommandsLength}, {Duration}, {Fps}, {Optimization})", id, commands.Length, duration, fps, optimization);
         
@@ -21,7 +21,7 @@ public class RenderingService(ILogger<RenderingService> logger, IOptions<Rendere
         var gifBytes = await RunTypoRenderer(commands, id, durationValue, fpsValue);
         gifBytes = await RunGifOptimization(gifBytes, id, optimizationValue);
 
-        return new GifRenderResult(id, gifBytes, durationValue, fpsValue, optimizationValue);
+        return new GifRenderResultData(id, gifBytes, durationValue, fpsValue, optimizationValue);
     }
     
     private async Task<byte[]> RunTypoRenderer(double[][] commands, Ulid renderId, int duration, int fps)
@@ -35,6 +35,11 @@ public class RenderingService(ILogger<RenderingService> logger, IOptions<Rendere
         var config = options.Value;
         var gifOutputPath = Path.Combine(config.TempDirectory, $"{renderId}-render.gif");
         var args = $"{config.RendererJsLocation} --commandsSkdPath={skdPath} --gifOutputPath={gifOutputPath} --gifFramerate={fps} --gifDuration={duration * 1000}";
+        
+        if(config.WatermarkLocation is not null)
+        {
+            args += $" --watermarkPath={config.WatermarkLocation}";
+        }
         
         logger.LogDebug("Running command: {Command}", args);
         BufferedCommandResult? result = null;

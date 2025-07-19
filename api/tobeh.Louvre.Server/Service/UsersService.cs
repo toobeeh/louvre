@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database;
-using tobeh.Louvre.Server.Dto;
 
 namespace tobeh.Louvre.Server.Service;
 
 public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
 {
-    public async Task<AuthorizedUserDto?> GetUserByLogin(string login)
+    public async Task<UserDto?> GetUserByLogin(string login)
     {
         logger.LogTrace("GetUserByLogin({Login})", login);
         
@@ -17,7 +17,7 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
             return null;
         }
 
-        return new AuthorizedUserDto(user.Id, user.Type, user.Name);
+        return new UserDto(user.Id, user.Type, user.Name);
     }
     
     public async Task DeleteUserByLogin(string login)
@@ -37,7 +37,7 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
         logger.LogInformation("User deleted: {Login}", login);
     }
     
-    public async Task<AuthorizedUserDto> AddUser(AuthorizedUserDto userDto)
+    public async Task<UserDto> AddUser(UserDto userDto)
     {
         logger.LogTrace("AddUser({UserDto})", userDto);
         
@@ -45,7 +45,7 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
         if (existingUser != null)
         {
             logger.LogWarning("User already exists: {Login}", userDto.Login);
-            return new AuthorizedUserDto(existingUser.Id, existingUser.Type, existingUser.Name);
+            return new UserDto(existingUser.Id, existingUser.Type, existingUser.Name);
         }
 
         var newUser = new Database.Model.UserEntity
@@ -63,12 +63,32 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
         return userDto;
     }
     
-    public async Task<IEnumerable<AuthorizedUserDto>> GetAllUsers()
+    public async Task<IEnumerable<UserDto>> GetAllUsers()
     {
         logger.LogTrace("GetAllUsers()");
         
         return await db.Users
-            .Select(u => new AuthorizedUserDto(u.Id, u.Type, u.Name))
+            .Select(u => new UserDto(u.Id, u.Type, u.Name))
             .ToListAsync();
+    }
+    
+    public async Task<UserDto> RenameUser(string login, string newName)
+    {
+        logger.LogTrace("RenameUser({Login}, {NewName})", login, newName);
+        
+        var user = await db.Users.FindAsync(login);
+        if (user == null)
+        {
+            logger.LogWarning("User not found for renaming: {Login}", login);
+            throw new KeyNotFoundException($"User with login {login} not found.");
+        }
+
+        user.Name = newName;
+        db.Users.Update(user);
+        await db.SaveChangesAsync();
+        
+        logger.LogInformation("User renamed: {Login} to {NewName}", login, newName);
+
+        return new UserDto(user.Id, user.Type, user.Name);
     }
 }

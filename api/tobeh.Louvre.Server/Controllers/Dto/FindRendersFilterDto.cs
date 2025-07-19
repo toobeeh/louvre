@@ -1,3 +1,3 @@
-namespace tobeh.Louvre.Server.Dto;
+namespace tobeh.Louvre.Server.Controllers.Dto;
 
 public record FindRendersFilterDto(string? NameIncludeQuery, bool? Rendered, string? DrawerName, string? ApprovedDrawerLogin, string? Language);

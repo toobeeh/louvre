@@ -1,12 +1,12 @@
-using tobeh.Louvre.Server.Dto;
+using tobeh.Louvre.Server.Controllers.Dto;
 
 namespace tobeh.Louvre.Server.Service;
 
 public class AuthorizedUserCacheService(ILogger<AuthorizedUserCacheService> logger)
 {
-    private readonly Dictionary<string, AuthorizedUserDto> _tokenCache = new ();
+    private readonly Dictionary<string, UserDto> _tokenCache = new ();
     
-    public void CacheUser(string token, AuthorizedUserDto user)
+    public void CacheUser(string token, UserDto user)
     {
         logger.LogTrace("CacheUser({Token}, {User})", token, user);
         
@@ -18,7 +18,7 @@ public class AuthorizedUserCacheService(ILogger<AuthorizedUserCacheService> logg
         _tokenCache[token] = user;
     }
     
-    public AuthorizedUserDto? GetUserByToken(string token)
+    public UserDto? GetUserByToken(string token)
     {
         logger.LogTrace("GetUserByToken({Token})", token);
         

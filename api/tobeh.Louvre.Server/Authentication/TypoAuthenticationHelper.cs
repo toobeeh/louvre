@@ -1,13 +1,13 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database.Model;
-using tobeh.Louvre.Server.Dto;
 
 namespace tobeh.Louvre.Server.Authentication;
 
 public class TypoAuthenticationHelper
 {
-    public static AuthenticationTicket CreateTicket(AuthorizedUserDto user, string token)
+    public static AuthenticationTicket CreateTicket(UserDto user, string token)
     {
         var claims = new[]
         {
@@ -23,7 +23,7 @@ public class TypoAuthenticationHelper
         return ticket;
     }
     
-    public static AuthorizedUserDto GetUserFromPrincipal(ClaimsPrincipal principal)
+    public static UserDto GetUserFromPrincipal(ClaimsPrincipal principal)
     {
         if (principal == null || !principal.Identity.IsAuthenticated)
         {
@@ -39,7 +39,7 @@ public class TypoAuthenticationHelper
             throw new ArgumentException("Invalid user type in principal");
         }
 
-        return new AuthorizedUserDto(login ?? string.Empty, parsedUserType, name ?? string.Empty);
+        return new UserDto(login ?? string.Empty, parsedUserType, name ?? string.Empty);
     }
     
     public static string GetAccessTokenFromPrincipal(ClaimsPrincipal principal)

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using tobeh.Louvre.Server.Authentication;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database.Model;
-using tobeh.Louvre.Server.Dto;
 using tobeh.Louvre.Server.Service;
 using tobeh.Louvre.TypoApiClient;
 
@@ -18,7 +18,7 @@ public class UsersController(
 {
     
     [HttpGet, Authorize]
-    public async Task<IEnumerable<AuthorizedUserDto>> GetAuthorizedUsers()
+    public async Task<IEnumerable<UserDto>> GetAuthorizedUsers()
     {
         logger.LogTrace("GetAuthorizedUsers()");
         
@@ -26,7 +26,7 @@ public class UsersController(
     }
     
     [HttpPost, Authorize(Roles = "Administrator,Moderator")]
-    public async Task<AuthorizedUserDto> AuthorizeUser(AuthorizeUserDto userDto)
+    public async Task<UserDto> AuthorizeUser(AuthorizeUserDto userDto)
     {
         logger.LogTrace("AuthorizeUser({UserDto})", userDto);
         
@@ -40,11 +40,11 @@ public class UsersController(
             .GetClient((url, client) => new MembersControllerClient(url, client))
             .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.Login));
         
-        return await usersService.AddUser(new AuthorizedUserDto(userDto.Login, userDto.UserType, user.UserName));
+        return await usersService.AddUser(new UserDto(userDto.Login, userDto.UserType, user.UserName));
     }
     
     [HttpGet("me")]
-    public Task<AuthorizedUserDto> GetCurrentUser()
+    public Task<UserDto> GetCurrentUser()
     {
         logger.LogTrace("GetCurrentUser()");
         
@@ -61,4 +61,15 @@ public class UsersController(
 
         return NoContent(); // 204 No Content
     }
+    
+    [HttpPatch("{id}/rename"), Authorize(Roles = "Administrator,Moderator")]
+    public async Task<UserDto> RenameUser(string id, [FromBody] string newName)
+    {
+        logger.LogTrace("RenameUser({Id}, {NewName})", id, newName);
+        
+        var user = await usersService.RenameUser(id, newName);
+
+        return user;
+    }
+    
 }

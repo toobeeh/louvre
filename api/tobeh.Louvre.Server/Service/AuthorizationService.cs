@@ -2,8 +2,8 @@ using System.Security.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using tobeh.Louvre.Server.Config;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database.Model;
-using tobeh.Louvre.Server.Dto;
 using tobeh.Louvre.TypoApiClient;
 
 namespace tobeh.Louvre.Server.Service;
@@ -26,7 +26,7 @@ public class AuthorizationService(
     /// <returns>
     /// Dto that contains the user login (id) and type.
     /// </returns>
-    public async Task<AuthorizedUserDto> GetAuthorizedUser(string accessToken)
+    public async Task<UserDto> GetAuthorizedUser(string accessToken)
     {
         logger.LogTrace("GetAuthorizedUser({accessToken})", accessToken);
         
@@ -48,7 +48,7 @@ public class AuthorizationService(
         if (member.MemberFlags.Contains(MemberFlags.Admin))
         {
             logger.LogDebug("User is an admin, authorizing without db check");
-            var adminUser = new AuthorizedUserDto(member.UserLogin, UserTypeEnum.Administrator, member.UserName);
+            var adminUser = new UserDto(member.UserLogin, UserTypeEnum.Administrator, member.UserName);
             authorizedUserCacheService.CacheUser(accessToken, adminUser);
             return adminUser;
         }
@@ -60,7 +60,7 @@ public class AuthorizationService(
             throw new AuthenticationFailureException("User not authorized to use app");
         }
         
-        var authorizedUser = new AuthorizedUserDto(member.UserLogin, user.UserType, member.UserName);
+        var authorizedUser = new UserDto(member.UserLogin, user.UserType, member.UserName);
         authorizedUserCacheService.CacheUser(accessToken, authorizedUser);
         
         logger.LogDebug("User fetched and cached for future requests");

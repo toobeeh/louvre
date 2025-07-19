@@ -1,15 +1,34 @@
 using Microsoft.EntityFrameworkCore;
 using Minio.Exceptions;
+using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database;
 using tobeh.Louvre.Server.Database.Model;
-using tobeh.Louvre.Server.Dto;
+using tobeh.Louvre.Server.Service.Data;
 using tobeh.Louvre.TypoApiClient;
 
 namespace tobeh.Louvre.Server.Service;
 
 public class RendersService(ILogger<RendersService> logger, AppDatabaseContext db, StorageService storageService)
 {
-    public async Task<IEnumerable<RenderInfoDto>> FindRenders(FindRendersFilterDto filter)
+    public async Task<RenderData> GetRenderById(Ulid id)
+    {
+        logger.LogTrace("GetRenderById({Id})", id);
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+
+        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+            ? null
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+
+        return MapToDto(render, drawerName);
+    }
+    
+    public async Task<IEnumerable<RenderData>> FindRenders(FindRendersFilterDto filter)
     {
         logger.LogTrace("FindRenders({Filter})", filter);
         
@@ -63,7 +82,7 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
             .ToList();
     }
 
-    public async Task<RenderInfoDto> AddRenderRequest(CloudImageDto image, string ownerLogin)
+    public async Task<RenderData> AddRenderRequest(CloudImageDto image, string ownerLogin)
     {
         logger.LogTrace("AddRenderRequest({Image})", image);
 
@@ -98,7 +117,44 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         return MapToDto(entity.Entity, null);
     }
 
-    public async Task<RenderInfoDto> SetRenderCompleted(RenderingService.GifRenderResult gif)
+    public async Task<RenderData> MarkAsRerendering(Ulid id)
+    {
+        logger.LogTrace("MarkAsRerendering({Id})", id);
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for rerendering: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+
+        if (!render.Rendered)
+        {
+            logger.LogWarning("Tried to mark render as rerendering that has not rendered yet: {Id}", id);
+            throw new InvalidOperationException("Cannot mark render as rerendering that has not been rendered yet.");
+        }
+
+        if (render.Approved)
+        {
+            logger.LogWarning("Tried to mark already approved render as rerendering: {Id}", id);
+            throw new InvalidOperationException("Cannot mark an already approved render as rerendering.");
+        }
+        
+        render.Rendered = false;
+        render.RenderDuration = null;
+        render.RenderFps = null;
+        render.RenderOptimization = null;
+        
+        var entity = db.Renders.Update(render);
+        await db.SaveChangesAsync();
+        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+            ? null
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+        
+        return MapToDto(entity.Entity, drawerName);
+    }
+
+    public async Task<RenderData> SetRenderCompleted(GifRenderResultData gif)
     {
         logger.LogTrace("SetRenderCompleted({Gif})", gif);
         
@@ -123,18 +179,151 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         
         return MapToDto(entity.Entity, drawerName);
     }
-    
-    private RenderInfoDto MapToDto(RenderEntity render, string? drawerName)
+
+    public async Task RemoveRender(Ulid id)
     {
-        return new RenderInfoDto(
+        logger.LogTrace("RemoveRender({Id})", id);
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for removal: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+
+        if (render.Rendered == false)
+        {
+            logger.LogWarning("Tried to remove render that has not rendered yet");
+            throw new InvalidOperationException("Cannot remove render that has not been rendered yet.");
+        }
+        
+        db.Renders.Remove(render);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<RenderData> ProposeRenderDetails(Ulid id, string? drawerLogin, string? title)
+    {
+        logger.LogTrace("ProposeRenderDetails({Id}, {DrawerLogin}, {Title})", id, drawerLogin, title);
+
+        if (drawerLogin is null && title is null)
+        {
+            throw new ArgumentException("At least one of drawerLogin or title must be proposed.");
+        }
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for proposal: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+        
+        if(render.Approved)
+        {
+            logger.LogWarning("Tried to propose details for already approved render: {Id}", id);
+            throw new InvalidOperationException("Cannot propose details for an already approved render.");
+        }
+
+        string? newDrawerName = null;
+        if (drawerLogin is not null)
+        {
+            // check if drawer exists
+            var drawer = await db.Users.FirstOrDefaultAsync(u => u.Id == drawerLogin);
+            if (drawer == null)
+            {
+                logger.LogWarning("Drawer not found for proposal: {DrawerLogin}", drawerLogin);
+                throw new InvalidOperationException($"Drawer with login {drawerLogin} not found.");
+            }
+            
+            render.ApprovedDrawerLogin = drawerLogin;
+            newDrawerName = drawer.Name;
+        }
+        
+        if (title is not null)
+        {
+            render.ApprovedTitle = title;
+        }
+        
+        var entity = db.Renders.Update(render);
+        await db.SaveChangesAsync();
+        
+        return MapToDto(entity.Entity, newDrawerName);
+    }
+    
+    public async Task<RenderData> ApproveRender(Ulid id)
+    {
+        logger.LogTrace("ApproveRender({Id})", id);
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for approval: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+        
+        if (render.Approved)
+        {
+            logger.LogWarning("Tried to approve already approved render: {Id}", id);
+            throw new InvalidOperationException("Render is already approved.");
+        }
+
+        render.Approved = true;
+        
+        var entity = db.Renders.Update(render);
+        await db.SaveChangesAsync();
+        
+        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+            ? null
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+        
+        return MapToDto(entity.Entity, drawerName);
+    }
+    
+    public async Task<RenderData> UnapproveRender(Ulid id)
+    {
+        logger.LogTrace("UnapproveRender({Id})", id);
+        
+        var render = await db.Renders.FirstOrDefaultAsync(r => r.Id == id.ToString());
+        if (render == null)
+        {
+            logger.LogWarning("Render not found for approval: {Id}", id);
+            throw new InvalidOperationException($"Render with ID {id} not found.");
+        }
+        
+        if (!render.Approved)
+        {
+            logger.LogWarning("Tried to unapprove render that is not approved: {Id}", id);
+            throw new InvalidOperationException("Render is not yet approved.");
+        }
+
+        render.Approved = false;
+        
+        var entity = db.Renders.Update(render);
+        await db.SaveChangesAsync();
+        
+        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+            ? null
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+        
+        return MapToDto(entity.Entity, drawerName);
+    }
+    
+    private RenderData MapToDto(RenderEntity render, string? drawerName)
+    {
+        return new RenderData(
             Ulid.Parse(render.Id),
+            render.OwnerCloudId,
             render.ApprovedTitle ?? render.Title,
             drawerName ?? render.Drawer,
             render.ApprovedTitle is not null,
             drawerName is not null,
             render.Rendered,
             storageService.GetUrlForBucket(StorageService.GifBucketName, $"{render.Id}.gif"),
-            storageService.GetUrlForBucket(StorageService.ThumbnailBucketName, $"{render.Id}.png")
+            storageService.GetUrlForBucket(StorageService.ThumbnailBucketName, $"{render.Id}.png"),
+            render.RenderDuration,
+            render.RenderFps,
+            render.RenderOptimization,
+            render.Approved,
+            render.Language
         );
     }
 }
