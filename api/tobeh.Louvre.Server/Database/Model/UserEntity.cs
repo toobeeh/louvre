@@ -5,7 +5,7 @@ namespace tobeh.Louvre.Server.Database.Model;
 public class UserEntity
 {
     [Key]
-    public string Id { get; set; }
+    public int Id { get; set; }
     
     public UserTypeEnum Type { get; set; }
     

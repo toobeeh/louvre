@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using tobeh.Louvre.Server.Authentication;
 using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database.Model;
 using tobeh.Louvre.Server.Service;
@@ -13,7 +12,8 @@ namespace tobeh.Louvre.Server.Controllers;
 public class UsersController(
     ILogger<UsersController> logger,
     UsersService usersService,
-    TypoApiClientService typoApiClientService
+    TypoApiClientService typoApiClientService,
+    UserRequestContext userRequestContext
     ) : ControllerBase
 {
     
@@ -25,7 +25,7 @@ public class UsersController(
         return await usersService.GetAllUsers();
     }
     
-    [HttpPost, Authorize(Roles = "Administrator,Moderator")]
+    [HttpPost, Authorize(Policy = "Role:Moderator")]
     public async Task<UserDto> AuthorizeUser(AuthorizeUserDto userDto)
     {
         logger.LogTrace("AuthorizeUser({UserDto})", userDto);
@@ -38,21 +38,20 @@ public class UsersController(
         // fetch public user details from typo api to get name
         var user = await typoApiClientService
             .GetClient((url, client) => new MembersControllerClient(url, client))
-            .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.Login));
+            .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.TypoId));
         
-        return await usersService.AddUser(new UserDto(userDto.Login, userDto.UserType, user.UserName));
+        return await usersService.AddUser(new UserDto(userDto.TypoId, userDto.UserType, user.UserName));
     }
     
-    [HttpGet("me")]
-    public Task<UserDto> GetCurrentUser()
+    [HttpGet("me"), Authorize]
+    public async Task<UserDto> GetCurrentUser()
     {
         logger.LogTrace("GetCurrentUser()");
         
-        var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
-        return Task.FromResult(user);
+        return await userRequestContext.GetUserAsync();
     }
     
-    [HttpDelete("{id}"), Authorize(Roles = "Administrator,Moderator")]
+    [HttpDelete("{id}"), Authorize(Policy = "Role:Moderator")]
     public async Task<IActionResult> DeleteAuthorizedUser(string id)
     {
         logger.LogTrace("DeleteAuthorizedUser({Id})", id);
@@ -62,7 +61,7 @@ public class UsersController(
         return NoContent(); // 204 No Content
     }
     
-    [HttpPatch("{id}/rename"), Authorize(Roles = "Administrator,Moderator")]
+    [HttpPatch("{id}/rename"), Authorize(Policy = "Role:Moderator")]
     public async Task<UserDto> RenameUser(string id, [FromBody] string newName)
     {
         logger.LogTrace("RenameUser({Id}, {NewName})", id, newName);

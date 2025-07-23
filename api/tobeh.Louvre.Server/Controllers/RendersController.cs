@@ -1,7 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using tobeh.Louvre.Server.Authentication;
 using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Service;
 using tobeh.Louvre.Server.Service.Data;
@@ -16,11 +15,12 @@ public class RendersController(
     RendersService rendersService,
     TypoCloudService typoCloudService,
     RenderTaskDispatcherService renderTaskDispatcherService,
-    StorageService storageService
+    StorageService storageService,
+    UserRequestContext userRequestContext
     ) : ControllerBase
 {
     
-    [HttpPost, Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpPost, Authorize(Policy = "Role:Contributor")]
     public async Task<IEnumerable<RenderPreviewDto>> FindRenders(FindRendersFilterDto filter)
     {
         logger.LogTrace("FindRenders({Filter})", filter);
@@ -28,19 +28,19 @@ public class RendersController(
         return mapper.Map<IEnumerable<RenderPreviewDto>>(await rendersService.FindRenders(filter));
     }
     
-    [HttpPost("submit"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpPost("submit"), Authorize(Policy = "Role:Contributor")]
     public async Task<RenderPreviewDto> Submit(RenderSubmissionDto renderSubmissionDto)
     {
         logger.LogTrace("AddRender({RenderDto})", renderSubmissionDto);
 
-        var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
-        var token = TypoAuthenticationHelper.GetAccessTokenFromPrincipal(User);
+        var user = await userRequestContext.GetUserAsync();
+        var token = userRequestContext.GetJwt();
         
         // fetch image details from typo cloud
-        var cloudImage = await typoCloudService.GetCloudImage(user.Login, token, renderSubmissionDto.CloudId);
+        var cloudImage = await typoCloudService.GetCloudImage(user.TypoId, token, renderSubmissionDto.CloudId);
 
         // submit as rendering
-        var render = await rendersService.AddRenderRequest(cloudImage, user.Login);
+        var render = await rendersService.AddRenderRequest(cloudImage, user.TypoId);
         
         // run render in background, will set to render finished when done
         renderTaskDispatcherService.EnqueueSubmission(new RenderSubmissionData(
@@ -53,7 +53,7 @@ public class RendersController(
         return mapper.Map<RenderPreviewDto>(render);
     }
 
-    [HttpGet("{id}"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpGet("{id}"), Authorize(Policy = "Role:Contributor")]
     public async Task<RenderInfoDto> GetRender(Ulid id)
     {
         logger.LogTrace("GetRender({Id})", id);
@@ -63,7 +63,7 @@ public class RendersController(
         return mapper.Map<RenderInfoDto>(render);
     }
 
-    [HttpDelete("{id}"), Authorize(Roles = "Moderator,Administrator")]
+    [HttpDelete("{id}"), Authorize(Policy = "Role:Moderator")]
     public async Task<IActionResult> RemoveRender(Ulid id)
     {
         logger.LogTrace("RemoveRender({Id})", id);
@@ -75,16 +75,16 @@ public class RendersController(
         return NoContent();
     }
     
-    [HttpPatch("{id}/propose/drawer"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpPatch("{id}/propose/drawer"), Authorize(Policy = "Role:Contributor")]
     public async Task<RenderInfoDto> ProposeRenderDrawer(Ulid id, ProposeRenderDrawerDto proposeRenderDrawerDto)
     {
         logger.LogTrace("ProposeRenderDrawer({Id})", id);
         
-        var render = await rendersService.ProposeRenderDetails(id, proposeRenderDrawerDto.DrawerLogin, null);
+        var render = await rendersService.ProposeRenderDetails(id, proposeRenderDrawerDto.DrawerTypoId, null);
         return mapper.Map<RenderInfoDto>(render);
     }
     
-    [HttpPatch("{id}/propose/title"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpPatch("{id}/propose/title"), Authorize(Policy = "Role:Contributor")]
     public async Task<RenderInfoDto> ProposeRenderTitle(Ulid id, ProposeRenderTitleDto proposeRenderTitleDto)
     {
         logger.LogTrace("ProposeRenderTitle({Id})", id);
@@ -93,7 +93,7 @@ public class RendersController(
         return mapper.Map<RenderInfoDto>(render);
     }
 
-    [HttpPatch("{id}/approve"), Authorize(Roles = "Moderator,Administrator")]
+    [HttpPatch("{id}/approve"), Authorize(Policy = "Role:Moderator")]
     public async Task<RenderInfoDto> ApproveRender(Ulid id)
     {
         logger.LogTrace("ApproveRender({Id})", id);
@@ -102,7 +102,7 @@ public class RendersController(
         return mapper.Map<RenderInfoDto>(render);
     }
 
-    [HttpPatch("{id}/unapprove"), Authorize(Roles = "Moderator,Administrator")]
+    [HttpPatch("{id}/unapprove"), Authorize(Policy = "Role:Moderator")]
     public async Task<RenderInfoDto> UnapproveRender(Ulid id)
     {
         logger.LogTrace("UnapproveRender({Id})", id);
@@ -111,19 +111,19 @@ public class RendersController(
         return mapper.Map<RenderInfoDto>(render);
     }
 
-    [HttpPatch("{id}/rerender"), Authorize(Roles = "Moderator,Administrator,Contributor")]
+    [HttpPatch("{id}/rerender"), Authorize(Policy = "Role:Contributor")]
     public async Task<RenderInfoDto> RerenderRender(Ulid id, RenderParametersDto renderParametersDto)
     {
         logger.LogTrace("RerenderRender({Id})", id);
 
-        var user = TypoAuthenticationHelper.GetUserFromPrincipal(User);
-        var token = TypoAuthenticationHelper.GetAccessTokenFromPrincipal(User);
+        var user = await userRequestContext.GetUserAsync();
+        var token = userRequestContext.GetJwt();
         
         // reset render to rerendering state
         var render = await rendersService.MarkAsRerendering(id);
         
         // fetch image details from typo cloud
-        var cloudImage = await typoCloudService.GetCloudImage(user.Login, token, render.CloudId);
+        var cloudImage = await typoCloudService.GetCloudImage(user.TypoId, token, render.CloudId);
         
         // run rerender in background, will set to render finished when done
         renderTaskDispatcherService.EnqueueRerender(new RerenderRequestData(

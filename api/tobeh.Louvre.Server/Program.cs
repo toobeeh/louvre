@@ -1,10 +1,13 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Minio;
-using tobeh.Louvre.Server.Authentication;
+using tobeh.Louvre.Server.Authorization;
 using tobeh.Louvre.Server.Config;
 using tobeh.Louvre.Server.Database;
+using tobeh.Louvre.Server.Database.Model;
 using tobeh.Louvre.Server.Host;
 using tobeh.Louvre.Server.Mapper;
 using tobeh.Louvre.Server.Service;
@@ -38,8 +41,10 @@ public class Program
             builder.Services.AddScoped<StorageService>();
             builder.Services.AddScoped<TypoApiClientService>();
             builder.Services.AddScoped<AuthorizationService>();
+            builder.Services.AddScoped<UserRequestContext>();
             builder.Services.AddScoped<TypoCloudService>();
             builder.Services.AddScoped<RenderTaskWorkerService>();
+            builder.Services.AddScoped<IAuthorizationHandler, RoleRequirementHandler>();
             builder.Services.Configure<TypoApiConfig>(builder.Configuration.GetSection("TypoApi"));
             builder.Services.Configure<RendererConfig>(builder.Configuration.GetSection("Renderer"));
             builder.Services.Configure<S3Config>(builder.Configuration.GetSection("S3"));
@@ -51,26 +56,69 @@ public class Program
             builder.Services.AddAutoMapper(config => config.AddProfile(typeof(MapperProfile)));
         }
 
-        // Add services to the container.
-        builder.Services.AddControllers();
-        
-        builder.Services.AddOpenApi("louvre", options =>
+        // add authentication via jwt/openid connect
+        builder.Services
+            .AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", jwtOptions =>
+            {
+                jwtOptions.Authority = "https://api.typo.rip/openid";
+                jwtOptions.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidAudience = "Louvre"
+                };
+            });
+
+        builder.Services.AddAuthorization(options =>
         {
-            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+            foreach (UserTypeEnum userType in Enum.GetValuesAsUnderlyingType<UserTypeEnum>())
+            {
+                options.AddPolicy($"Role:{userType.ToString()}",
+                    policy => policy.Requirements.Add(new RoleRequirement(userType)));
+            }
         });
-        
-        // add typo authentication scheme for typo bearer token
-        builder.Services.AddAuthentication(TypoTokenAuthenticationHandler.Scheme)
-            .AddScheme<AuthenticationSchemeOptions, TypoTokenAuthenticationHandler>(
-                TypoTokenAuthenticationHandler.Scheme, null);
+
+        // register controllers
+        builder.Services.AddControllers();
+        builder.Services.AddHttpContextAccessor();
+
+        // set up swagger & openapi
+        builder.Services.AddSwaggerGen(config =>
+        {
+            config.SwaggerDoc("louvre", new () {Title = "Louvre API", Version = "v1"});
+
+            config.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OpenIdConnect,
+                OpenIdConnectUrl = new Uri("https://api.typo.rip/openid/.well-known/openid-configuration"),
+                Description = "OAuth2 AuthorizationCode flow"
+            });
+            
+            config.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "oauth2"
+                        }
+                    },
+                    []
+                }
+            });
+        });
 
         var app = builder.Build();
 
-        app.MapOpenApi();
         app.UseAuthorization();
+        app.MapOpenApi();
+        app.UseSwagger(config => config.RouteTemplate = "openapi/{documentName}.json");
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/openapi/louvre.json", "Louvre API");
+            options.OAuthClientId("5");
         });
 
         app.MapControllers();

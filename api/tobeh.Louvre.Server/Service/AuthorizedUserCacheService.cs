@@ -4,18 +4,19 @@ namespace tobeh.Louvre.Server.Service;
 
 public class AuthorizedUserCacheService(ILogger<AuthorizedUserCacheService> logger)
 {
-    private readonly Dictionary<string, UserDto> _tokenCache = new ();
+    private record TimestampedUserEntry(DateTimeOffset Timestamp, UserDto User);
+    private readonly Dictionary<string, TimestampedUserEntry> _tokenCache = new ();
     
-    public void CacheUser(string token, UserDto user)
+    public void CacheUser(string identifier, UserDto user)
     {
-        logger.LogTrace("CacheUser({Token}, {User})", token, user);
+        logger.LogTrace("CacheUser({Token}, {User})", identifier, user);
         
-        if (string.IsNullOrEmpty(token) || user == null)
+        if (string.IsNullOrEmpty(identifier) || user == null)
         {
-            throw new ArgumentException("Token and user cannot be null or empty.");
+            throw new ArgumentException("Identifier and user cannot be null or empty.");
         }
 
-        _tokenCache[token] = user;
+        _tokenCache[identifier] = new TimestampedUserEntry(DateTimeOffset.UtcNow, user);
     }
     
     public UserDto? GetUserByToken(string token)
@@ -28,6 +29,13 @@ public class AuthorizedUserCacheService(ILogger<AuthorizedUserCacheService> logg
         }
 
         _tokenCache.TryGetValue(token, out var user);
-        return user;
+        
+        if (user is { } userValue && !(userValue.Timestamp < DateTimeOffset.UtcNow.AddMinutes(-5)))
+        {
+            return userValue.User;
+        }
+        
+        if(user is not null) _tokenCache.Remove(token);
+        return null;
     }
 }

@@ -7,16 +7,16 @@ public class TypoCloudService(
     HttpClient httpClient,
     TypoApiClientService typoApiClientService)
 {
-    public async Task<CloudImageDto> GetCloudImage(string login, string accessToken, string id)
+    public async Task<CloudImageDto> GetCloudImage(double typoId, string accessToken, string id)
     {
-        logger.LogTrace("GetCloudImage({Login}, {AccessToken}, {Id})", login, accessToken, id);
+        logger.LogTrace("GetCloudImage({typoId}, {AccessToken}, {Id})", typoId, accessToken, id);
         
         var client = typoApiClientService.GetClient((url, client) =>
         {
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
             return new CloudControllerClient(url, client);
         });
-        return await client.GetImageFromUserCloudAsync(Convert.ToDouble(login), id);
+        return await client.GetImageFromUserCloudAsync(typoId, id);
     }
 
     public async Task<double[][]> GetSkdFromCloud(CloudImageDto image)

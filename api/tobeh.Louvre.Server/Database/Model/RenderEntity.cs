@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace tobeh.Louvre.Server.Database.Model;
 
-[Index(nameof(CloudOwnerLogin), nameof(OwnerCloudId), IsUnique = true)]
+[Index(nameof(CloudOwnerTypoId), nameof(OwnerCloudId), IsUnique = true)]
 public class RenderEntity
 {
     [Key]
@@ -18,10 +18,10 @@ public class RenderEntity
     public string Drawer { get; set; }
     public string Language { get; set; }
     
-    public string? ApprovedDrawerLogin { get; set; }
+    public int? ApprovedDrawerTypoId { get; set; }
     public string? ApprovedTitle { get; set; }
     
     public bool Approved { get; set; }
-    public string CloudOwnerLogin { get; set; }
+    public int? CloudOwnerTypoId { get; set; }
     public string OwnerCloudId { get; set; }
 }

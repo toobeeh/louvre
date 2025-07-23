@@ -41,16 +41,16 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
     {
         logger.LogTrace("AddUser({UserDto})", userDto);
         
-        var existingUser = await db.Users.FindAsync(userDto.Login);
+        var existingUser = await db.Users.FindAsync(userDto.TypoId);
         if (existingUser != null)
         {
-            logger.LogWarning("User already exists: {Login}", userDto.Login);
+            logger.LogWarning("User already exists: {Login}", userDto.TypoId);
             return new UserDto(existingUser.Id, existingUser.Type, existingUser.Name);
         }
 
         var newUser = new Database.Model.UserEntity
         {
-            Id = userDto.Login,
+            Id = userDto.TypoId,
             Type = userDto.UserType,
             Name = userDto.Name
         };
@@ -58,7 +58,7 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
         db.Users.Add(newUser);
         await db.SaveChangesAsync();
         
-        logger.LogInformation("New user added: {Login}", userDto.Login);
+        logger.LogInformation("New user added: {Login}", userDto.TypoId);
 
         return userDto;
     }

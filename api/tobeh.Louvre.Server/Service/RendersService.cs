@@ -21,9 +21,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
             throw new InvalidOperationException($"Render with ID {id} not found.");
         }
 
-        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+        var drawerName = render.ApprovedDrawerTypoId is null
             ? null
-            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerTypoId)?.Name;
 
         return MapToDto(render, drawerName);
     }
@@ -53,9 +53,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         }
         
         // filter if drawer login is approved
-        if (!string.IsNullOrEmpty(filter.ApprovedDrawerLogin))
+        if (filter.ApprovedDrawerTypoId is not null)
         {
-            query = query.Where(r => r.ApprovedDrawerLogin == filter.ApprovedDrawerLogin);
+            query = query.Where(r => r.ApprovedDrawerTypoId == filter.ApprovedDrawerTypoId);
         }
         
         // filter by language
@@ -67,7 +67,7 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         // join with users to get drawer name
         var results = await query
             .GroupJoin(db.Users,
-                render => render.ApprovedDrawerLogin,
+                render => render.ApprovedDrawerTypoId,
                 user => user.Id,
                 (render, user) => new { render, user })
             .SelectMany(
@@ -82,11 +82,12 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
             .ToList();
     }
 
-    public async Task<RenderData> AddRenderRequest(CloudImageDto image, string ownerLogin)
+    public async Task<RenderData> AddRenderRequest(CloudImageDto image, double typoId)
     {
-        logger.LogTrace("AddRenderRequest({Image})", image);
+        logger.LogTrace("AddRenderRequest({typoId})", typoId);
 
         var id = Ulid.NewUlid();
+        var intTypoId = Convert.ToInt32(typoId);
         
         var entity = db.Renders.Add(new RenderEntity()
         {
@@ -95,11 +96,11 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
             ApprovedTitle = null,
             Approved = false,
             Drawer = image.Author,
-            ApprovedDrawerLogin = image.Own ? ownerLogin : null,
+            ApprovedDrawerTypoId = image.Own ? intTypoId : null,
             Language = image.Language,
             Rendered = false,
             OwnerCloudId = image.Id,
-            CloudOwnerLogin = ownerLogin,
+            CloudOwnerTypoId = intTypoId,
             RenderDuration = null,
             RenderFps = null,
             RenderOptimization = null
@@ -147,9 +148,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         
         var entity = db.Renders.Update(render);
         await db.SaveChangesAsync();
-        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+        var drawerName = render.ApprovedDrawerTypoId is null
             ? null
-            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerTypoId)?.Name;
         
         return MapToDto(entity.Entity, drawerName);
     }
@@ -173,9 +174,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         var entity = db.Renders.Update(render);
         await db.SaveChangesAsync();
         
-        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+        var drawerName = render.ApprovedDrawerTypoId is null
             ? null
-            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerTypoId)?.Name;
         
         return MapToDto(entity.Entity, drawerName);
     }
@@ -201,11 +202,11 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         await db.SaveChangesAsync();
     }
 
-    public async Task<RenderData> ProposeRenderDetails(Ulid id, string? drawerLogin, string? title)
+    public async Task<RenderData> ProposeRenderDetails(Ulid id, int? drawerTypoId, string? title)
     {
-        logger.LogTrace("ProposeRenderDetails({Id}, {DrawerLogin}, {Title})", id, drawerLogin, title);
+        logger.LogTrace("ProposeRenderDetails({Id}, {drawerTypoId}, {Title})", id, drawerTypoId, title);
 
-        if (drawerLogin is null && title is null)
+        if (drawerTypoId is null && title is null)
         {
             throw new ArgumentException("At least one of drawerLogin or title must be proposed.");
         }
@@ -224,17 +225,17 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         }
 
         string? newDrawerName = null;
-        if (drawerLogin is not null)
+        if (drawerTypoId is not null)
         {
             // check if drawer exists
-            var drawer = await db.Users.FirstOrDefaultAsync(u => u.Id == drawerLogin);
+            var drawer = await db.Users.FirstOrDefaultAsync(u => u.Id == drawerTypoId);
             if (drawer == null)
             {
-                logger.LogWarning("Drawer not found for proposal: {DrawerLogin}", drawerLogin);
-                throw new InvalidOperationException($"Drawer with login {drawerLogin} not found.");
+                logger.LogWarning("Drawer not found for proposal: {drawerTypoId}", drawerTypoId);
+                throw new InvalidOperationException($"Drawer with login {drawerTypoId} not found.");
             }
             
-            render.ApprovedDrawerLogin = drawerLogin;
+            render.ApprovedDrawerTypoId = drawerTypoId;
             newDrawerName = drawer.Name;
         }
         
@@ -271,9 +272,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         var entity = db.Renders.Update(render);
         await db.SaveChangesAsync();
         
-        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+        var drawerName = render.ApprovedDrawerTypoId is null
             ? null
-            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerTypoId)?.Name;
         
         return MapToDto(entity.Entity, drawerName);
     }
@@ -300,9 +301,9 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         var entity = db.Renders.Update(render);
         await db.SaveChangesAsync();
         
-        var drawerName = string.IsNullOrEmpty(render.ApprovedDrawerLogin)
+        var drawerName = render.ApprovedDrawerTypoId is null
             ? null
-            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerLogin)?.Name;
+            : db.Users.FirstOrDefault(u => u.Id == render.ApprovedDrawerTypoId)?.Name;
         
         return MapToDto(entity.Entity, drawerName);
     }

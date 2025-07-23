@@ -14,7 +14,7 @@ public class RenderTaskWorkerService (
     {
         logger.LogTrace("SubmitAndRender({Submission})", submission);
 
-        logger.LogInformation("Starting rendering of {RenderId} for user {UserLogin}", submission.Render.Id, submission.User.Login);
+        logger.LogInformation("Starting rendering of {RenderId} for user {UserLogin}", submission.Render.Id, submission.User.TypoId);
         
         var commands = await typoCloudService.GetSkdFromCloud(submission.CloudImage);
         var image = await typoCloudService.GetImageFromCloud(submission.CloudImage);
@@ -30,7 +30,7 @@ public class RenderTaskWorkerService (
         await storageService.SaveThumbnail(gif.RenderId, image);
         await rendersService.SetRenderCompleted(gif);
         
-        logger.LogInformation("Rendering of {RenderId} completed for user {UserLogin}", submission.Render.Id, submission.User.Login);
+        logger.LogInformation("Rendering of {RenderId} completed for user {UserLogin}", submission.Render.Id, submission.User.TypoId);
     }
     
     public async Task Rerender(RerenderRequestData request)

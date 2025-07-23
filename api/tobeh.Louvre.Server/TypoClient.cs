@@ -25,235 +25,6 @@ namespace tobeh.Louvre.TypoApiClient
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class AppControllerClient 
-    {
-        #pragma warning disable 8618
-        private string _baseUrl;
-        #pragma warning restore 8618
-
-        private System.Net.Http.HttpClient _httpClient;
-        private static System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings, true);
-        private Newtonsoft.Json.JsonSerializerSettings _instanceSettings;
-
-    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public AppControllerClient(string baseUrl, System.Net.Http.HttpClient httpClient)
-    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            BaseUrl = baseUrl;
-            _httpClient = httpClient;
-            Initialize();
-        }
-
-        private static Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
-        {
-            var settings = new Newtonsoft.Json.JsonSerializerSettings();
-            UpdateJsonSerializerSettings(settings);
-            return settings;
-        }
-
-        public string BaseUrl
-        {
-            get { return _baseUrl; }
-            set
-            {
-                _baseUrl = value;
-                if (!string.IsNullOrEmpty(_baseUrl) && !_baseUrl.EndsWith("/"))
-                    _baseUrl += '/';
-            }
-        }
-
-        protected Newtonsoft.Json.JsonSerializerSettings JsonSerializerSettings { get { return _instanceSettings ?? _settings.Value; } }
-
-        static partial void UpdateJsonSerializerSettings(Newtonsoft.Json.JsonSerializerSettings settings);
-
-        partial void Initialize();
-
-        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, string url);
-        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
-        partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
-
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task GetHelloAsync()
-        {
-            return GetHelloAsync(System.Threading.CancellationToken.None);
-        }
-
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task GetHelloAsync(System.Threading.CancellationToken cancellationToken)
-        {
-            var client_ = _httpClient;
-            var disposeClient_ = false;
-            try
-            {
-                using (var request_ = new System.Net.Http.HttpRequestMessage())
-                {
-                    request_.Method = new System.Net.Http.HttpMethod("GET");
-
-                    var urlBuilder_ = new System.Text.StringBuilder();
-                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: ""
-
-                    PrepareRequest(client_, request_, urlBuilder_);
-
-                    var url_ = urlBuilder_.ToString();
-                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
-
-                    PrepareRequest(client_, request_, url_);
-
-                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-                    var disposeResponse_ = true;
-                    try
-                    {
-                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
-                        foreach (var item_ in response_.Headers)
-                            headers_[item_.Key] = item_.Value;
-                        if (response_.Content != null && response_.Content.Headers != null)
-                        {
-                            foreach (var item_ in response_.Content.Headers)
-                                headers_[item_.Key] = item_.Value;
-                        }
-
-                        ProcessResponse(client_, response_);
-
-                        var status_ = (int)response_.StatusCode;
-                        if (status_ == 200)
-                        {
-                            return;
-                        }
-                        else
-                        {
-                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
-                        }
-                    }
-                    finally
-                    {
-                        if (disposeResponse_)
-                            response_.Dispose();
-                    }
-                }
-            }
-            finally
-            {
-                if (disposeClient_)
-                    client_.Dispose();
-            }
-        }
-
-        protected struct ObjectResponseResult<T>
-        {
-            public ObjectResponseResult(T responseObject, string responseText)
-            {
-                this.Object = responseObject;
-                this.Text = responseText;
-            }
-
-            public T Object { get; }
-
-            public string Text { get; }
-        }
-
-        public bool ReadResponseAsString { get; set; }
-
-        protected virtual async System.Threading.Tasks.Task<ObjectResponseResult<T>> ReadObjectResponseAsync<T>(System.Net.Http.HttpResponseMessage response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Threading.CancellationToken cancellationToken)
-        {
-            if (response == null || response.Content == null)
-            {
-                return new ObjectResponseResult<T>(default(T), string.Empty);
-            }
-
-            if (ReadResponseAsString)
-            {
-                var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    var typedBody = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(responseText, JsonSerializerSettings);
-                    return new ObjectResponseResult<T>(typedBody, responseText);
-                }
-                catch (Newtonsoft.Json.JsonException exception)
-                {
-                    var message = "Could not deserialize the response body string as " + typeof(T).FullName + ".";
-                    throw new ApiException(message, (int)response.StatusCode, responseText, headers, exception);
-                }
-            }
-            else
-            {
-                try
-                {
-                    using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-                    using (var streamReader = new System.IO.StreamReader(responseStream))
-                    using (var jsonTextReader = new Newtonsoft.Json.JsonTextReader(streamReader))
-                    {
-                        var serializer = Newtonsoft.Json.JsonSerializer.Create(JsonSerializerSettings);
-                        var typedBody = serializer.Deserialize<T>(jsonTextReader);
-                        return new ObjectResponseResult<T>(typedBody, string.Empty);
-                    }
-                }
-                catch (Newtonsoft.Json.JsonException exception)
-                {
-                    var message = "Could not deserialize the response body stream as " + typeof(T).FullName + ".";
-                    throw new ApiException(message, (int)response.StatusCode, string.Empty, headers, exception);
-                }
-            }
-        }
-
-        private string ConvertToString(object value, System.Globalization.CultureInfo cultureInfo)
-        {
-            if (value == null)
-            {
-                return "";
-            }
-
-            if (value is System.Enum)
-            {
-                var name = System.Enum.GetName(value.GetType(), value);
-                if (name != null)
-                {
-                    var field = System.Reflection.IntrospectionExtensions.GetTypeInfo(value.GetType()).GetDeclaredField(name);
-                    if (field != null)
-                    {
-                        var attribute = System.Reflection.CustomAttributeExtensions.GetCustomAttribute(field, typeof(System.Runtime.Serialization.EnumMemberAttribute)) 
-                            as System.Runtime.Serialization.EnumMemberAttribute;
-                        if (attribute != null)
-                        {
-                            return attribute.Value != null ? attribute.Value : name;
-                        }
-                    }
-
-                    var converted = System.Convert.ToString(System.Convert.ChangeType(value, System.Enum.GetUnderlyingType(value.GetType()), cultureInfo));
-                    return converted == null ? string.Empty : converted;
-                }
-            }
-            else if (value is bool) 
-            {
-                return System.Convert.ToString((bool)value, cultureInfo).ToLowerInvariant();
-            }
-            else if (value is byte[])
-            {
-                return System.Convert.ToBase64String((byte[]) value);
-            }
-            else if (value is string[])
-            {
-                return string.Join(",", (string[])value);
-            }
-            else if (value.GetType().IsArray)
-            {
-                var valueArray = (System.Array)value;
-                var valueTextArray = new string[valueArray.Length];
-                for (var i = 0; i < valueArray.Length; i++)
-                {
-                    valueTextArray[i] = ConvertToString(valueArray.GetValue(i), cultureInfo);
-                }
-                return string.Join(",", valueTextArray);
-            }
-
-            var result = System.Convert.ToString(value, cultureInfo);
-            return result == null ? "" : result;
-        }
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LobbiesControllerClient 
     {
         #pragma warning disable 8618
@@ -307,6 +78,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>An array of all current lobbies</returns>
@@ -322,6 +96,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -401,6 +178,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="token">Token parameter</param>
@@ -417,6 +197,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -502,6 +285,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:read
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="token">Token parameter</param>
@@ -518,6 +304,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Member
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -762,6 +551,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>An array of matching members</returns>
@@ -777,6 +569,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -862,6 +657,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>The authenticated member</returns>
@@ -877,6 +675,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Member
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -954,8 +755,11 @@ namespace tobeh.Louvre.TypoApiClient
         /// Get a member by their login
         /// </summary>
         /// <remarks>
-        /// Required Roles: Moderator
+        /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -972,8 +776,11 @@ namespace tobeh.Louvre.TypoApiClient
         /// Get a member by their login
         /// </summary>
         /// <remarks>
-        /// Required Roles: Moderator
+        /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1160,6 +967,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1177,6 +987,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1262,6 +1075,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1278,6 +1094,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1370,6 +1189,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1385,6 +1207,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1464,6 +1289,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1481,6 +1309,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1565,6 +1396,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1582,6 +1416,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1666,6 +1503,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="id">Id parameter</param>
@@ -1682,6 +1522,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -1767,6 +1610,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:read,member.imagepost:read
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -1784,6 +1630,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.guilds:read,member.imagepost:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -3741,6 +3590,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.imagepost:write,member.guilds:read
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 600000 ms TTL
         /// </remarks>
         /// <param name="token">Token parameter</param>
@@ -3758,6 +3610,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Member
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.imagepost:write,member.guilds:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 600000 ms TTL
         /// </remarks>
@@ -4405,6 +4260,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="id">Id parameter</param>
@@ -4421,6 +4279,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -4513,6 +4374,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="id">Id parameter</param>
@@ -4529,6 +4393,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -4781,6 +4648,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Admin
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -4795,6 +4665,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Admin
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: admin:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5029,6 +4902,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.leagues:read
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5046,6 +4922,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.leagues:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5131,6 +5010,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.leagues:read
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5150,6 +5032,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.leagues:read
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5246,6 +5131,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>Ranking stats for all members of a season</returns>
@@ -5261,6 +5149,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5340,6 +5231,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="year">Season year parameter</param>
@@ -5357,6 +5251,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5609,6 +5506,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5627,6 +5527,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -5718,6 +5621,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5736,6 +5642,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -5821,6 +5730,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read,member.awards:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5840,6 +5752,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read,member.awards:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -5932,6 +5847,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -5949,6 +5867,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6042,6 +5963,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6058,6 +5982,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6144,6 +6071,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6161,6 +6091,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Member
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.cloud:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -6413,6 +6346,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6430,6 +6366,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6517,6 +6456,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6534,6 +6476,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6621,6 +6566,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6638,6 +6586,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6724,6 +6675,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6741,6 +6695,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.sprites:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6827,6 +6784,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.scenes:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6844,6 +6804,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.scenes:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -6930,6 +6893,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.scenes:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -6947,6 +6913,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.scenes:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -7034,6 +7003,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.awards:read
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="login">Member Login parameter</param>
@@ -7051,6 +7023,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Moderator
         /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: member.inventory.awards:read
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -7536,6 +7511,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Admin | EmojiManagement | ContentModerator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>Emoji has been added</returns>
@@ -7551,6 +7529,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Admin | EmojiManagement | ContentModerator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -7637,6 +7618,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Admin | EmojiManagement | ContentModerator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
+        /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="query">Search query</param>
@@ -7656,6 +7640,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Admin | EmojiManagement | ContentModerator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
         /// <br/>
         /// <br/>Rate limit default: 30 Requests / 60000 ms TTL
         /// </remarks>
@@ -7865,6 +7852,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: Admin | ContentModerator | Moderator
         /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
+        /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
         /// <param name="id">Id parameter</param>
@@ -7882,6 +7872,9 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         /// <remarks>
         /// Required Roles: Admin | ContentModerator | Moderator
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: emojis:write
         /// <br/>
         /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
         /// </remarks>
@@ -8682,6 +8675,1220 @@ namespace tobeh.Louvre.TypoApiClient
         }
     }
 
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2ControllerClient 
+    {
+        #pragma warning disable 8618
+        private string _baseUrl;
+        #pragma warning restore 8618
+
+        private System.Net.Http.HttpClient _httpClient;
+        private static System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings, true);
+        private Newtonsoft.Json.JsonSerializerSettings _instanceSettings;
+
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public OAuth2ControllerClient(string baseUrl, System.Net.Http.HttpClient httpClient)
+    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+            BaseUrl = baseUrl;
+            _httpClient = httpClient;
+            Initialize();
+        }
+
+        private static Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
+        {
+            var settings = new Newtonsoft.Json.JsonSerializerSettings();
+            UpdateJsonSerializerSettings(settings);
+            return settings;
+        }
+
+        public string BaseUrl
+        {
+            get { return _baseUrl; }
+            set
+            {
+                _baseUrl = value;
+                if (!string.IsNullOrEmpty(_baseUrl) && !_baseUrl.EndsWith("/"))
+                    _baseUrl += '/';
+            }
+        }
+
+        protected Newtonsoft.Json.JsonSerializerSettings JsonSerializerSettings { get { return _instanceSettings ?? _settings.Value; } }
+
+        static partial void UpdateJsonSerializerSettings(Newtonsoft.Json.JsonSerializerSettings settings);
+
+        partial void Initialize();
+
+        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, string url);
+        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
+        partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
+
+        /// <summary>
+        /// Get all available scopes for OAuth2
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>List of available scopes</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScopeDto>> GetScopesAsync()
+        {
+            return GetScopesAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get all available scopes for OAuth2
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>List of available scopes</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ScopeDto>> GetScopesAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/scopes"
+                    urlBuilder_.Append("oauth2/scopes");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ScopeDto>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Retrieve details about a discord user using a discord auth code and an access token for later use
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Discord user authenticated successfully</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<DiscordAuthenticationResultDto> PreAuthenticateDiscordAuthorizationCodeAsync(PreauthenticateDiscordOauth2CodeDto body)
+        {
+            return PreAuthenticateDiscordAuthorizationCodeAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Retrieve details about a discord user using a discord auth code and an access token for later use
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Discord user authenticated successfully</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<DiscordAuthenticationResultDto> PreAuthenticateDiscordAuthorizationCodeAsync(PreauthenticateDiscordOauth2CodeDto body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/preauthenticate"
+                    urlBuilder_.Append("oauth2/preauthenticate");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<DiscordAuthenticationResultDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Authenticate a typo member using preauthenticated discord details and create a OAuth2 auth code for typo. Creates an account, if set and not existing.
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>User authenticated successfully and authorization code issued</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OAuth2AuthenticationResultDto> AuthenticateAsync(OAuth2AuthenticationDto body)
+        {
+            return AuthenticateAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Authenticate a typo member using preauthenticated discord details and create a OAuth2 auth code for typo. Creates an account, if set and not existing.
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>User authenticated successfully and authorization code issued</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OAuth2AuthenticationResultDto> AuthenticateAsync(OAuth2AuthenticationDto body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/code"
+                    urlBuilder_.Append("oauth2/code");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OAuth2AuthenticationResultDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Exchange a typo oauth2 authorization code for a access token (jwt)
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Issued access token and details</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2AuthorizationCodeExchangeDto body)
+        {
+            return GetAccessTokenAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Exchange a typo oauth2 authorization code for a access token (jwt)
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Issued access token and details</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2AuthorizationCodeExchangeDto body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/token"
+                    urlBuilder_.Append("oauth2/token");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OAuth2AccessTokenResponseDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get all registered OAuth2 clients
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>List of registered OAuth2 clients</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<OAuth2ClientDto>> GetClientsAsync()
+        {
+            return GetClientsAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get all registered OAuth2 clients
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>List of registered OAuth2 clients</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<OAuth2ClientDto>> GetClientsAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/clients"
+                    urlBuilder_.Append("oauth2/clients");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<OAuth2ClientDto>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Register a new OAuth2 client
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: Member
+        /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <param name="login">Member Login parameter</param>
+        /// <returns>OAuth2 client registered successfully</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OAuth2ClientDto> RegisterClientAsync(double login, CreateOAuth2ClientDto body)
+        {
+            return RegisterClientAsync(login, body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Register a new OAuth2 client
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: Member
+        /// <br/>- Role override if {login} matches the client login.
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <param name="login">Member Login parameter</param>
+        /// <returns>OAuth2 client registered successfully</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OAuth2ClientDto> RegisterClientAsync(double login, CreateOAuth2ClientDto body, System.Threading.CancellationToken cancellationToken)
+        {
+            if (login == null)
+                throw new System.ArgumentNullException("login");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = Newtonsoft.Json.JsonConvert.SerializeObject(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.StringContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "oauth2/clients/member/{login}"
+                    urlBuilder_.Append("oauth2/clients/member/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(login, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 201)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OAuth2ClientDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        protected struct ObjectResponseResult<T>
+        {
+            public ObjectResponseResult(T responseObject, string responseText)
+            {
+                this.Object = responseObject;
+                this.Text = responseText;
+            }
+
+            public T Object { get; }
+
+            public string Text { get; }
+        }
+
+        public bool ReadResponseAsString { get; set; }
+
+        protected virtual async System.Threading.Tasks.Task<ObjectResponseResult<T>> ReadObjectResponseAsync<T>(System.Net.Http.HttpResponseMessage response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Threading.CancellationToken cancellationToken)
+        {
+            if (response == null || response.Content == null)
+            {
+                return new ObjectResponseResult<T>(default(T), string.Empty);
+            }
+
+            if (ReadResponseAsString)
+            {
+                var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    var typedBody = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(responseText, JsonSerializerSettings);
+                    return new ObjectResponseResult<T>(typedBody, responseText);
+                }
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    var message = "Could not deserialize the response body string as " + typeof(T).FullName + ".";
+                    throw new ApiException(message, (int)response.StatusCode, responseText, headers, exception);
+                }
+            }
+            else
+            {
+                try
+                {
+                    using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (var streamReader = new System.IO.StreamReader(responseStream))
+                    using (var jsonTextReader = new Newtonsoft.Json.JsonTextReader(streamReader))
+                    {
+                        var serializer = Newtonsoft.Json.JsonSerializer.Create(JsonSerializerSettings);
+                        var typedBody = serializer.Deserialize<T>(jsonTextReader);
+                        return new ObjectResponseResult<T>(typedBody, string.Empty);
+                    }
+                }
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    var message = "Could not deserialize the response body stream as " + typeof(T).FullName + ".";
+                    throw new ApiException(message, (int)response.StatusCode, string.Empty, headers, exception);
+                }
+            }
+        }
+
+        private string ConvertToString(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+
+            if (value is System.Enum)
+            {
+                var name = System.Enum.GetName(value.GetType(), value);
+                if (name != null)
+                {
+                    var field = System.Reflection.IntrospectionExtensions.GetTypeInfo(value.GetType()).GetDeclaredField(name);
+                    if (field != null)
+                    {
+                        var attribute = System.Reflection.CustomAttributeExtensions.GetCustomAttribute(field, typeof(System.Runtime.Serialization.EnumMemberAttribute)) 
+                            as System.Runtime.Serialization.EnumMemberAttribute;
+                        if (attribute != null)
+                        {
+                            return attribute.Value != null ? attribute.Value : name;
+                        }
+                    }
+
+                    var converted = System.Convert.ToString(System.Convert.ChangeType(value, System.Enum.GetUnderlyingType(value.GetType()), cultureInfo));
+                    return converted == null ? string.Empty : converted;
+                }
+            }
+            else if (value is bool) 
+            {
+                return System.Convert.ToString((bool)value, cultureInfo).ToLowerInvariant();
+            }
+            else if (value is byte[])
+            {
+                return System.Convert.ToBase64String((byte[]) value);
+            }
+            else if (value is string[])
+            {
+                return string.Join(",", (string[])value);
+            }
+            else if (value.GetType().IsArray)
+            {
+                var valueArray = (System.Array)value;
+                var valueTextArray = new string[valueArray.Length];
+                for (var i = 0; i < valueArray.Length; i++)
+                {
+                    valueTextArray[i] = ConvertToString(valueArray.GetValue(i), cultureInfo);
+                }
+                return string.Join(",", valueTextArray);
+            }
+
+            var result = System.Convert.ToString(value, cultureInfo);
+            return result == null ? "" : result;
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OpenIdControllerClient 
+    {
+        #pragma warning disable 8618
+        private string _baseUrl;
+        #pragma warning restore 8618
+
+        private System.Net.Http.HttpClient _httpClient;
+        private static System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings, true);
+        private Newtonsoft.Json.JsonSerializerSettings _instanceSettings;
+
+    #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public OpenIdControllerClient(string baseUrl, System.Net.Http.HttpClient httpClient)
+    #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        {
+            BaseUrl = baseUrl;
+            _httpClient = httpClient;
+            Initialize();
+        }
+
+        private static Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
+        {
+            var settings = new Newtonsoft.Json.JsonSerializerSettings();
+            UpdateJsonSerializerSettings(settings);
+            return settings;
+        }
+
+        public string BaseUrl
+        {
+            get { return _baseUrl; }
+            set
+            {
+                _baseUrl = value;
+                if (!string.IsNullOrEmpty(_baseUrl) && !_baseUrl.EndsWith("/"))
+                    _baseUrl += '/';
+            }
+        }
+
+        protected Newtonsoft.Json.JsonSerializerSettings JsonSerializerSettings { get { return _instanceSettings ?? _settings.Value; } }
+
+        static partial void UpdateJsonSerializerSettings(Newtonsoft.Json.JsonSerializerSettings settings);
+
+        partial void Initialize();
+
+        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, string url);
+        partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
+        partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
+
+        /// <summary>
+        /// Get the JSON Web Key Set (JWKS) for OAuth2
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>JSON Web Key Set (JWKS) containing public keys for OAuth2</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<JwksDto> GetJwksAsync()
+        {
+            return GetJwksAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get the JSON Web Key Set (JWKS) for OAuth2
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>JSON Web Key Set (JWKS) containing public keys for OAuth2</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<JwksDto> GetJwksAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "openid/jwks.json"
+                    urlBuilder_.Append("openid/jwks.json");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<JwksDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get the openid configuration of typo
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Minimal openid configuration of typo</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OpenIdConfigurationDto> GetOpenidConfigurationAsync()
+        {
+            return GetOpenidConfigurationAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get the openid configuration of typo
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: None
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Minimal openid configuration of typo</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OpenIdConfigurationDto> GetOpenidConfigurationAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "openid/.well-known/openid-configuration"
+                    urlBuilder_.Append("openid/.well-known/openid-configuration");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OpenIdConfigurationDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get the userinfo endpoint of typo
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: Member
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Userinfo endpoint is available</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<OpenIdUserinfoDto> GetUserinfoAsync()
+        {
+            return GetUserinfoAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get the userinfo endpoint of typo
+        /// </summary>
+        /// <remarks>
+        /// Required Roles: Member
+        /// <br/>
+        /// <br/>
+        /// <br/>Required Scopes: *
+        /// <br/>
+        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// </remarks>
+        /// <returns>Userinfo endpoint is available</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OpenIdUserinfoDto> GetUserinfoAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "openid/userinfo"
+                    urlBuilder_.Append("openid/userinfo");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OpenIdUserinfoDto>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        protected struct ObjectResponseResult<T>
+        {
+            public ObjectResponseResult(T responseObject, string responseText)
+            {
+                this.Object = responseObject;
+                this.Text = responseText;
+            }
+
+            public T Object { get; }
+
+            public string Text { get; }
+        }
+
+        public bool ReadResponseAsString { get; set; }
+
+        protected virtual async System.Threading.Tasks.Task<ObjectResponseResult<T>> ReadObjectResponseAsync<T>(System.Net.Http.HttpResponseMessage response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Threading.CancellationToken cancellationToken)
+        {
+            if (response == null || response.Content == null)
+            {
+                return new ObjectResponseResult<T>(default(T), string.Empty);
+            }
+
+            if (ReadResponseAsString)
+            {
+                var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    var typedBody = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(responseText, JsonSerializerSettings);
+                    return new ObjectResponseResult<T>(typedBody, responseText);
+                }
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    var message = "Could not deserialize the response body string as " + typeof(T).FullName + ".";
+                    throw new ApiException(message, (int)response.StatusCode, responseText, headers, exception);
+                }
+            }
+            else
+            {
+                try
+                {
+                    using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    using (var streamReader = new System.IO.StreamReader(responseStream))
+                    using (var jsonTextReader = new Newtonsoft.Json.JsonTextReader(streamReader))
+                    {
+                        var serializer = Newtonsoft.Json.JsonSerializer.Create(JsonSerializerSettings);
+                        var typedBody = serializer.Deserialize<T>(jsonTextReader);
+                        return new ObjectResponseResult<T>(typedBody, string.Empty);
+                    }
+                }
+                catch (Newtonsoft.Json.JsonException exception)
+                {
+                    var message = "Could not deserialize the response body stream as " + typeof(T).FullName + ".";
+                    throw new ApiException(message, (int)response.StatusCode, string.Empty, headers, exception);
+                }
+            }
+        }
+
+        private string ConvertToString(object value, System.Globalization.CultureInfo cultureInfo)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+
+            if (value is System.Enum)
+            {
+                var name = System.Enum.GetName(value.GetType(), value);
+                if (name != null)
+                {
+                    var field = System.Reflection.IntrospectionExtensions.GetTypeInfo(value.GetType()).GetDeclaredField(name);
+                    if (field != null)
+                    {
+                        var attribute = System.Reflection.CustomAttributeExtensions.GetCustomAttribute(field, typeof(System.Runtime.Serialization.EnumMemberAttribute)) 
+                            as System.Runtime.Serialization.EnumMemberAttribute;
+                        if (attribute != null)
+                        {
+                            return attribute.Value != null ? attribute.Value : name;
+                        }
+                    }
+
+                    var converted = System.Convert.ToString(System.Convert.ChangeType(value, System.Enum.GetUnderlyingType(value.GetType()), cultureInfo));
+                    return converted == null ? string.Empty : converted;
+                }
+            }
+            else if (value is bool) 
+            {
+                return System.Convert.ToString((bool)value, cultureInfo).ToLowerInvariant();
+            }
+            else if (value is byte[])
+            {
+                return System.Convert.ToBase64String((byte[]) value);
+            }
+            else if (value is string[])
+            {
+                return string.Join(",", (string[])value);
+            }
+            else if (value.GetType().IsArray)
+            {
+                var valueArray = (System.Array)value;
+                var valueTextArray = new string[valueArray.Length];
+                for (var i = 0; i < valueArray.Length; i++)
+                {
+                    valueTextArray[i] = ConvertToString(valueArray.GetValue(i), cultureInfo);
+                }
+                return string.Join(",", valueTextArray);
+            }
+
+            var result = System.Convert.ToString(value, cultureInfo);
+            return result == null ? "" : result;
+        }
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class LobbyPlayerDto
     {
@@ -8928,11 +10135,18 @@ namespace tobeh.Louvre.TypoApiClient
         public string UserName { get; set; }
 
         /// <summary>
-        /// The member's palantir identification
+        /// DEPRECATED. Use TypoId instead.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("userLogin", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.Obsolete]
         public string UserLogin { get; set; }
+
+        /// <summary>
+        /// The member's typo unique identification
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("typoId", Required = Newtonsoft.Json.Required.Always)]
+        public double TypoId { get; set; }
 
         /// <summary>
         /// The raw database member result
@@ -9002,6 +10216,12 @@ namespace tobeh.Louvre.TypoApiClient
         public double Drops { get; set; }
 
         /// <summary>
+        /// The member's typo unique identification
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("typoId", Required = Newtonsoft.Json.Required.Always)]
+        public double TypoId { get; set; }
+
+        /// <summary>
         /// The member's sprite inventory
         /// </summary>
         [Newtonsoft.Json.JsonProperty("sprites", Required = Newtonsoft.Json.Required.Always)]
@@ -9043,10 +10263,11 @@ namespace tobeh.Louvre.TypoApiClient
         public string UserName { get; set; }
 
         /// <summary>
-        /// The member's palantir identification
+        /// DEPRECATED. Use TypoId instead.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("userLogin", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.Obsolete]
         public string UserLogin { get; set; }
 
         /// <summary>
@@ -9099,11 +10320,18 @@ namespace tobeh.Louvre.TypoApiClient
         public string UserName { get; set; }
 
         /// <summary>
-        /// The member's palantir identification
+        /// DEPRECATED. Use TypoId instead.
         /// </summary>
         [Newtonsoft.Json.JsonProperty("userLogin", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.Obsolete]
         public string UserLogin { get; set; }
+
+        /// <summary>
+        /// The member's typo unique identification
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("typoId", Required = Newtonsoft.Json.Required.Always)]
+        public double TypoId { get; set; }
 
         /// <summary>
         /// Enum array containing the flags of the member
@@ -10681,6 +11909,569 @@ namespace tobeh.Louvre.TypoApiClient
         /// </summary>
         [Newtonsoft.Json.JsonProperty("connectTypo", Required = Newtonsoft.Json.Required.Always)]
         public bool ConnectTypo { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ScopeDto
+    {
+        /// <summary>
+        /// The name/id of a scope
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The description of the scope
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("description", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Description { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PreauthenticateDiscordOauth2CodeDto
+    {
+        /// <summary>
+        /// The discord authorization code used to exchange for a discord access token
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("authorizationCode", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string AuthorizationCode { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class DiscordAuthenticationResultDto
+    {
+        /// <summary>
+        /// The decrypted access token for the discord user that has authenticated using an auth code
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("encryptedAccessToken", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string EncryptedAccessToken { get; set; }
+
+        /// <summary>
+        /// Whether the user already has a typo account or not
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("hasTypoAccount", Required = Newtonsoft.Json.Required.Always)]
+        public bool HasTypoAccount { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CreateTypoAccountOptionsDto
+    {
+        /// <summary>
+        /// Connect the new member to TT typo server home
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("connectTypoTestground", Required = Newtonsoft.Json.Required.Always)]
+        public bool ConnectTypoTestground { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2AuthenticationDto
+    {
+        /// <summary>
+        /// The encrypted access token which had previously been received in the preauthorize step
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("discordEncryptedAccessToken", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string DiscordEncryptedAccessToken { get; set; }
+
+        /// <summary>
+        /// The client ID of the application requesting authentication
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("clientId", Required = Newtonsoft.Json.Required.Always)]
+        public double ClientId { get; set; }
+
+        /// <summary>
+        /// Required account creation options if the user has no account yet
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("createAccountOptions", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public CreateTypoAccountOptionsDto CreateAccountOptions { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2ClientDto
+    {
+        /// <summary>
+        /// The client ID of the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("clientId", Required = Newtonsoft.Json.Required.Always)]
+        public double ClientId { get; set; }
+
+        /// <summary>
+        /// The redirect URI for the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("redirectUri", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string RedirectUri { get; set; }
+
+        /// <summary>
+        /// The scopes requested by the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("scopes", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Scopes { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// The name of the OAuth2 client 
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Whether the client has been verified by typo
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("verified", Required = Newtonsoft.Json.Required.Always)]
+        public bool Verified { get; set; }
+
+        /// <summary>
+        /// Token expiry time in seconds
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("tokenExpiry", Required = Newtonsoft.Json.Required.Always)]
+        public double TokenExpiry { get; set; }
+
+        /// <summary>
+        /// The typo id of the client owner
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("ownerTypoId", Required = Newtonsoft.Json.Required.Always)]
+        public double OwnerTypoId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2AuthorizationCodeDto
+    {
+        /// <summary>
+        /// The authorization code issued for the authenticated user and client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("authorizationCode", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string AuthorizationCode { get; set; }
+
+        /// <summary>
+        /// The client details for which the authorization code was issued
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("client", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public OAuth2ClientDto Client { get; set; } = new OAuth2ClientDto();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2AuthenticationResultDto
+    {
+        /// <summary>
+        /// The created typo oauth authorization code
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("result", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public OAuth2AuthorizationCodeDto Result { get; set; } = new OAuth2AuthorizationCodeDto();
+
+        /// <summary>
+        /// The authenticated member
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("member", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public MemberDto Member { get; set; } = new MemberDto();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2AuthorizationCodeExchangeDto
+    {
+        /// <summary>
+        /// The authorization code received from the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Code { get; set; }
+
+        /// <summary>
+        /// The client ID of the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("client_id", Required = Newtonsoft.Json.Required.Always)]
+        public double Client_id { get; set; }
+
+        /// <summary>
+        /// The typo ID of the user requesting the exchange
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("grant_type", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Grant_type { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OAuth2AccessTokenResponseDto
+    {
+        /// <summary>
+        /// The issued jwt access token for member and client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("access_token", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Access_token { get; set; }
+
+        /// <summary>
+        /// The returned token type
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("token_type", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Token_type { get; set; }
+
+        /// <summary>
+        /// The expiry time in seconds
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("expires_in", Required = Newtonsoft.Json.Required.Always)]
+        public double Expires_in { get; set; }
+
+        /// <summary>
+        /// The scope of the generated token
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("scope", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Scope { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CreateOAuth2ClientDto
+    {
+        /// <summary>
+        /// The redirect URI for the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("redirectUri", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string RedirectUri { get; set; }
+
+        /// <summary>
+        /// The scopes requested by the OAuth2 client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("scopes", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Scopes { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// The name of the OAuth2 client 
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Name { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class JwkDto
+    {
+        /// <summary>
+        /// Key type, typically 'RSA'
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("kty", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Kty { get; set; }
+
+        /// <summary>
+        /// Key use, typically 'sig' for signature
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("use", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Use { get; set; }
+
+        /// <summary>
+        /// Key ID, a unique identifier for the key
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("kid", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Kid { get; set; }
+
+        /// <summary>
+        /// Algorithm used with the key, typically 'RS256'
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("alg", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Alg { get; set; }
+
+        /// <summary>
+        /// Modulus of the RSA key, base64url encoded
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("n", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string N { get; set; }
+
+        /// <summary>
+        /// Exponent of the RSA key, base64url encoded
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("e", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string E { get; set; }
+
+        /// <summary>
+        /// Private key is not exposed in JWKS
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("d", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string D { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class JwksDto
+    {
+        /// <summary>
+        /// JSON Web Key Set (JWKS) containing public keys for OAuth2
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("keys", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<JwkDto> Keys { get; set; } = new System.Collections.ObjectModel.Collection<JwkDto>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OpenIdConfigurationDto
+    {
+        /// <summary>
+        /// Issuer server identifier
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("issuer", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Issuer { get; set; }
+
+        /// <summary>
+        /// JWKS URI for public key used to verify signatures
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("jwks_uri", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Jwks_uri { get; set; }
+
+        /// <summary>
+        /// Typo OAuth2 authorization endpoint
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("authorization_endpoint", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Authorization_endpoint { get; set; }
+
+        /// <summary>
+        /// Typo OAuth2 token endpoint
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("token_endpoint", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Token_endpoint { get; set; }
+
+        /// <summary>
+        /// Typo user profile claims endpoint
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("userinfo_endpoint", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Userinfo_endpoint { get; set; }
+
+        /// <summary>
+        /// Empty scopes; scopes are assigned by client
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("scopes_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Scopes_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// Supported token claims
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("claims_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Claims_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// Only code flow supported
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("response_types_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Response_types_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// Only code flow supported
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("grant_types_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Grant_types_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// Only public subject types
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("subject_types_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Subject_types_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// RS256 Signing algorithms for ID tokens
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("id_token_signing_alg_values_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Id_token_signing_alg_values_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// No code challenge methods supported
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("code_challenge_methods_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Code_challenge_methods_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        /// <summary>
+        /// No token endpoint authentication methods supported
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("token_endpoint_auth_methods_supported", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> Token_endpoint_auth_methods_supported { get; set; } = new System.Collections.ObjectModel.Collection<string>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OpenIdUserinfoDto
+    {
+        /// <summary>
+        /// Unique identifier for the user
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("sub", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Sub { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
