@@ -44,6 +44,7 @@ public class TypoApiClientService(
                 else
                 {
                     ExchangedAudienceJwt = await ExchangeJwtAudienceAsync(OriginalAudienceJwt);
+                    authorizedUserCacheService.CacheDelegateToken(OriginalAudienceJwt, ExchangedAudienceJwt);
                 }
             }
             
