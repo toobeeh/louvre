@@ -119,7 +119,7 @@ public class Program
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/openapi/louvre.json", "Louvre API");
-            options.OAuthClientId("5");
+            options.OAuthClientId(builder.Configuration.GetValue<string>("TypoApi:OauthClientId"));
         });
 
         app.MapControllers();

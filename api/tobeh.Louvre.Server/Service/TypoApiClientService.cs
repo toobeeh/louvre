@@ -85,10 +85,10 @@ public class TypoApiClientService(
         {
             Address = disco.TokenEndpoint,
             GrantType = IdentityModel.OidcConstants.GrantTypes.TokenExchange,
-            ClientId = "5",
+            ClientId = apiOptions.Value.OauthClientId,
             Parameters =
             {
-                { IdentityModel.OidcConstants.TokenRequest.ClientId, "5" },
+                { IdentityModel.OidcConstants.TokenRequest.ClientId, apiOptions.Value.OauthClientId },
                 { IdentityModel.OidcConstants.TokenRequest.SubjectToken, jwt },
                 { IdentityModel.OidcConstants.TokenRequest.SubjectTokenType, IdentityModel.OidcConstants.TokenTypeIdentifiers.Jwt },
                 { IdentityModel.OidcConstants.TokenRequest.Audience, apiOptions.Value.BaseUrl }
