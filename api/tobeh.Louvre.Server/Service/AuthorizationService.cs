@@ -14,10 +14,10 @@ public class AuthorizationService(
     HttpClient httpClient, 
     IOptions<TypoApiConfig> apiOptions,
     AuthorizedUserCacheService authorizedUserCacheService,
-    UsersService usersService
+    UsersService usersService,
+    TypoApiClientService typoApiClientService
     )
 {
-    private readonly MembersControllerClient _membersClient = new(apiOptions.Value.BaseUrl, httpClient);
 
     /// <summary>
     /// Gets the authorized user based on the provided access token.
@@ -50,9 +50,9 @@ public class AuthorizationService(
         }
         
         // make request on behalf of the user to typo api to fetch member details
-        httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
-        var member = await _membersClient.GetAuthenticatedMemberAsync();
+        var membersClient = await typoApiClientService
+            .GetClient((url, client) => new MembersControllerClient(url, client));
+        var member = await membersClient.GetAuthenticatedMemberAsync();
         
         // if member is typo admin, always authorize
         if (member.MemberFlags.Contains(MemberFlags.Admin))

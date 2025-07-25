@@ -9029,7 +9029,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// </remarks>
         /// <returns>Issued access token and details</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2AuthorizationCodeExchangeDto body)
+        public virtual System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2TokenExchangeDto body)
         {
             return GetAccessTokenAsync(body, System.Threading.CancellationToken.None);
         }
@@ -9045,7 +9045,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// </remarks>
         /// <returns>Issued access token and details</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2AuthorizationCodeExchangeDto body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<OAuth2AccessTokenResponseDto> GetAccessTokenAsync(OAuth2TokenExchangeDto body, System.Threading.CancellationToken cancellationToken)
         {
             if (body == null)
                 throw new System.ArgumentNullException("body");
@@ -12098,6 +12098,13 @@ namespace tobeh.Louvre.TypoApiClient
         [Newtonsoft.Json.JsonProperty("ownerTypoId", Required = Newtonsoft.Json.Required.Always)]
         public double OwnerTypoId { get; set; }
 
+        /// <summary>
+        /// The audience of the OAuth2 client, typically the base url of the API that it accesses
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("audience", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Audience { get; set; }
+
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
         [Newtonsoft.Json.JsonExtensionData]
@@ -12166,27 +12173,44 @@ namespace tobeh.Louvre.TypoApiClient
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class OAuth2AuthorizationCodeExchangeDto
+    public partial class OAuth2TokenExchangeDto
     {
         /// <summary>
-        /// The authorization code received from the OAuth2 client
-        /// </summary>
-        [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Code { get; set; }
-
-        /// <summary>
-        /// The client ID of the OAuth2 client
-        /// </summary>
-        [Newtonsoft.Json.JsonProperty("client_id", Required = Newtonsoft.Json.Required.Always)]
-        public double Client_id { get; set; }
-
-        /// <summary>
-        /// The typo ID of the user requesting the exchange
+        /// The oauth2 grant type
         /// </summary>
         [Newtonsoft.Json.JsonProperty("grant_type", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Grant_type { get; set; }
+
+        /// <summary>
+        /// An authorization code received from the OAuth2 client, required for grant_type=code
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("code", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Code { get; set; }
+
+        /// <summary>
+        /// The client ID of the OAuth2 client, required for grant_type=code
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("client_id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Client_id { get; set; }
+
+        /// <summary>
+        /// An access token to be exchanged, required for grant_type=token-exchange
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("subject_token", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Subject_token { get; set; }
+
+        /// <summary>
+        /// The type of the subject token, required for grant_type=token-exchange
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("subject_token_type", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Subject_token_type { get; set; }
+
+        /// <summary>
+        /// The requested audience of the subject token, required for grant_type=token-exchange
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("audience", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Audience { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -12217,6 +12241,12 @@ namespace tobeh.Louvre.TypoApiClient
         public string Token_type { get; set; }
 
         /// <summary>
+        /// The returned token type kind for token-exchange grant
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("issued_token_type", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Issued_token_type { get; set; }
+
+        /// <summary>
         /// The expiry time in seconds
         /// </summary>
         [Newtonsoft.Json.JsonProperty("expires_in", Required = Newtonsoft.Json.Required.Always)]
@@ -12244,7 +12274,7 @@ namespace tobeh.Louvre.TypoApiClient
     public partial class CreateOAuth2ClientDto
     {
         /// <summary>
-        /// The redirect URI for the OAuth2 client
+        /// The OAuth2 redirect URI for the OAuth2 client
         /// </summary>
         [Newtonsoft.Json.JsonProperty("redirectUri", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -12258,11 +12288,18 @@ namespace tobeh.Louvre.TypoApiClient
         public System.Collections.Generic.ICollection<string> Scopes { get; set; } = new System.Collections.ObjectModel.Collection<string>();
 
         /// <summary>
-        /// The name of the OAuth2 client 
+        /// The name of the OAuth2 client
         /// </summary>
         [Newtonsoft.Json.JsonProperty("name", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Name { get; set; }
+
+        /// <summary>
+        /// The audience of the OAuth2 client, typically the base url of the API that it accesses
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("audience", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Audience { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

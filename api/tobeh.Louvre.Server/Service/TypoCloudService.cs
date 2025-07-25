@@ -11,11 +11,7 @@ public class TypoCloudService(
     {
         logger.LogTrace("GetCloudImage({typoId}, {AccessToken}, {Id})", typoId, accessToken, id);
         
-        var client = typoApiClientService.GetClient((url, client) =>
-        {
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-            return new CloudControllerClient(url, client);
-        });
+        var client = await typoApiClientService.GetClient((url, client) => new CloudControllerClient(url, client));
         return await client.GetImageFromUserCloudAsync(typoId, id);
     }
 

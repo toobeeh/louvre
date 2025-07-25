@@ -35,6 +35,7 @@ public class Program
             builder.Services.AddSingleton<AuthorizedUserCacheService>();
             builder.Services.AddSingleton<RenderTaskDispatcherService>();
             builder.Services.AddHttpClient();
+            builder.Services.AddHttpClient<TypoApiClientService>();
             builder.Services.AddScoped<UsersService>();
             builder.Services.AddScoped<RendersService>();
             builder.Services.AddScoped<RenderingService>();
@@ -65,7 +66,7 @@ public class Program
                 jwtOptions.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateAudience = true,
-                    ValidAudience = "Louvre"
+                    ValidAudience = "https://api.louvre.tobeh.host"
                 };
             });
 

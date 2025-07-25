@@ -36,8 +36,8 @@ public class UsersController(
         }
 
         // fetch public user details from typo api to get name
-        var user = await typoApiClientService
-            .GetClient((url, client) => new MembersControllerClient(url, client))
+        var user = await (await typoApiClientService
+                .GetClient((url, client) => new MembersControllerClient(url, client)))
             .GetPublicMemberInfoByLoginAsync(Convert.ToDouble(userDto.TypoId));
         
         return await usersService.AddUser(new UserDto(userDto.TypoId, userDto.UserType, user.UserName));

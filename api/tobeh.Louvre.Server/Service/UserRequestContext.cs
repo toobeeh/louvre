@@ -1,5 +1,8 @@
 using System.Security.Authentication;
 using System.Security.Claims;
+using IdentityModel.Client;
+using Microsoft.Extensions.Options;
+using tobeh.Louvre.Server.Config;
 using tobeh.Louvre.Server.Controllers.Dto;
 
 namespace tobeh.Louvre.Server.Service;
@@ -11,7 +14,12 @@ public class UserRequestContext
 
     private UserContext? User { get; }
     
-    public UserRequestContext(IHttpContextAccessor accessor, ILogger<UserRequestContext> logger, AuthorizationService authService)
+    public UserRequestContext(
+        IHttpContextAccessor accessor, 
+        ILogger<UserRequestContext> logger, 
+        AuthorizationService authService,
+        TypoApiClientService typoApiClientService
+        )
     {
         _authService = authService; 
         
@@ -23,7 +31,10 @@ public class UserRequestContext
             {
                 throw new AuthenticationException("Authorization header is missing or invalid.");
             }
+            
             var jwt = authHeader["Bearer ".Length..].Trim();
+            typoApiClientService.OriginalAudienceJwt = jwt;
+            
             User = new UserContext(context.User, jwt);
         }
 
