@@ -30,7 +30,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./
+          context: ./frontend
           file: ${{ env.DOCKERFILE_PATH }}
           push: true
           tags: ghcr.io/toobeeh/${{ env.IMAGE_NAME }}:latest
