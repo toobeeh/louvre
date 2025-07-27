@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+body {
+  background: black;
+  background: linear-gradient(to right, #07020b 0%, #01020b 100%);
+  color: white;
+  font-family: Consolas, "Courier New", monospace;
+}
+
+h1, h2 ,h3 {
+  font-family: "Limelight";
+  letter-spacing: .1ex;
+  word-spacing: 1ex;
+}
+
+h1 {
+  font-size: 2.5rem;
+
+  background: #8FB7CF;
+  background: linear-gradient(to right, #88b7ea 0%, #4c64bc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}

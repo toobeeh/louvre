@@ -1,0 +1,38 @@
+<!-- container-->
+<div class="flex flex-col w-full min-h-[100vh] p-8 gap-8">
+
+    <!-- header -->
+    <div class="grid grid-cols-[1fr_1fr_1fr] items-center">
+        <span class="opacity-50 text-left"><a href="https://www.typo.rip">powered by skribbltypo</a></span>
+
+        <!-- wrapper to adjust gradient width -->
+        <div class="flex justify-center">
+            <h1>Louvre GIF Gallery</h1>
+        </div>
+
+        <span class="opacity-50 text-right" *ngIf="(user$ | async) as user">{{user.name}} ({{user.userType | usertype}})</span>
+    </div>
+
+    <!-- nav -->
+    <div class="flex gap-8 justify-center">
+
+        <a
+                *ngFor="let item of nav"
+                class="cursor-pointer select-none flex gap-3 group font-bold text-lg"
+                [routerLink]="item.link"
+        >
+            <span class="opacity-20 group-hover:opacity-80 transition overlap">{{item.emoji.repeat(3)}}</span>
+            <span class="pl-3"> {{item.name}}</span>
+            <span class="opacity-20 group-hover:opacity-80 transition overlap">{{item.emoji.repeat(3)}}</span>
+        </a>
+
+    </div>
+
+    <!-- content -->
+    <div class="grow">
+        <ng-content></ng-content>
+    </div>
+
+
+</div>
+
