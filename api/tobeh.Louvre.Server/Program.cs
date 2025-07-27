@@ -69,6 +69,16 @@ public class Program
                     ValidAudience = "https://api.louvre.tobeh.host"
                 };
             });
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
 
         builder.Services.AddAuthorization(options =>
         {
@@ -87,12 +97,43 @@ public class Program
         builder.Services.AddSwaggerGen(config =>
         {
             config.SwaggerDoc("louvre", new () {Title = "Louvre API", Version = "v1"});
+            config.SupportNonNullableReferenceTypes();
+            config.SchemaFilter<SwaggerRequiredSchemaFilter>();
 
-            config.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            config.AddSecurityDefinition("openid", new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.OpenIdConnect,
                 OpenIdConnectUrl = new Uri("https://api.typo.rip/openid/.well-known/openid-configuration"),
                 Description = "OAuth2 AuthorizationCode flow"
+            });
+            
+            config.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "openid"
+                        }
+                    },
+                    []
+                }
+            });
+            
+            config.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
+                {
+                    AuthorizationCode = new OpenApiOAuthFlow
+                    {
+                        AuthorizationUrl = new Uri("https://placeholder-for-generator"),
+                        TokenUrl = new Uri("https://placeholder-for-generator"),
+                    }
+                },
+                Description = "OAuth2 AuthorizationCode flow for API generator"
             });
             
             config.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -113,6 +154,7 @@ public class Program
 
         var app = builder.Build();
 
+        app.UseCors("AllowAll");
         app.UseAuthorization();
         app.MapOpenApi();
         app.UseSwagger(config => config.RouteTemplate = "openapi/{documentName}.json");
