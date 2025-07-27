@@ -6,14 +6,14 @@ namespace tobeh.Louvre.Server.Service;
 
 public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
 {
-    public async Task<UserDto?> GetUserByLogin(string login)
+    public async Task<UserDto?> GetUserByLogin(int typoId)
     {
-        logger.LogTrace("GetUserByLogin({Login})", login);
+        logger.LogTrace("GetUserByLogin({Login})", typoId);
         
-        var user = await db.Users.FindAsync(login);
+        var user = await db.Users.FindAsync(typoId);
         if (user == null)
         {
-            logger.LogWarning("User not found: {Login}", login);
+            logger.LogWarning("User not found: {Login}", typoId);
             return null;
         }
 

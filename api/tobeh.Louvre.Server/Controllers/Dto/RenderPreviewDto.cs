@@ -9,5 +9,6 @@ public record RenderPreviewDto(
     bool FinishedRendering, 
     string GifUrl, 
     string ThumbnailUrl,
-    bool Approved
+    bool Approved,
+    string Language
 );

@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using DotSwashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -98,7 +99,9 @@ public class Program
         {
             config.SwaggerDoc("louvre", new () {Title = "Louvre API", Version = "v1"});
             config.SupportNonNullableReferenceTypes();
-            config.SchemaFilter<SwaggerRequiredSchemaFilter>();
+            /*config.SchemaFilter<SwaggerRequiredSchemaFilter>();*/
+            // Use method name as operationId
+            config.CustomOperationIds(apiDesc => apiDesc.TryGetMethodInfo(out var methodInfo) ? methodInfo.Name : null);
 
             config.AddSecurityDefinition("openid", new OpenApiSecurityScheme
             {

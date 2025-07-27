@@ -35,9 +35,15 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         var query = db.Renders.AsQueryable();
         
         // filter name contains
-        if (!string.IsNullOrEmpty(filter.NameIncludeQuery))
+        if (!string.IsNullOrEmpty(filter.TitleIncludeQuery))
         {
-            query = query.Where(r => r.Title.Contains(filter.NameIncludeQuery));
+            query = query.Where(r => r.Title.Contains(filter.TitleIncludeQuery));
+        }
+        
+        // filter approved
+        if (filter.Approved.HasValue)
+        {
+            query = query.Where(r => r.Approved == filter.Approved.Value);
         }
         
         // filter if render has finished
@@ -63,6 +69,11 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         {
             query = query.Where(r => r.Language == filter.Language);
         }
+        
+        // filter page and page size
+        query = query
+            .Skip((filter.Page ?? 0) * (filter.PageSize ?? 50))
+            .Take(filter.PageSize ?? 50);
 
         // join with users to get drawer name
         var results = await query
@@ -77,7 +88,7 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
 
         // map to dto and order
         return results
-            .Select(render => this.MapToDto(render.Info, render.User?.Name))
+            .Select(render => MapToDto(render.Info, render.User?.Name))
             .OrderByDescending(render => render.Id)
             .ToList();
     }
