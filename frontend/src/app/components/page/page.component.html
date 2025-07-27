@@ -1,5 +1,5 @@
 <!-- container-->
-<div class="flex flex-col w-full min-h-[100vh] p-8 gap-8">
+<div class="flex flex-col w-full h-screen p-8 gap-8">
 
     <!-- header -->
     <div class="grid grid-cols-[1fr_1fr_1fr] items-center">
@@ -7,14 +7,14 @@
 
         <!-- wrapper to adjust gradient width -->
         <div class="flex justify-center">
-            <h1>Louvre GIF Gallery</h1>
+            <h1>Louvre</h1>
         </div>
 
-        <span class="opacity-50 text-right" *ngIf="(user$ | async) as user">{{user.name}} ({{user.userType | usertype}})</span>
+        <span class="opacity-50 text-right" *ngIf="(user$ | async) as user">{{user.name}} ({{user.userType! | usertype}})</span>
     </div>
 
     <!-- nav -->
-    <div class="flex gap-8 justify-center">
+    <div class="flex gap-8 justify-center  pb-4 border-b-2 border-b-gray-800">
 
         <a
                 *ngFor="let item of nav"
@@ -22,14 +22,14 @@
                 [routerLink]="item.link"
         >
             <span class="opacity-20 group-hover:opacity-80 transition overlap">{{item.emoji.repeat(3)}}</span>
-            <span class="pl-3"> {{item.name}}</span>
+            <span class="pl-3 signature-gradient"> {{item.name}}</span>
             <span class="opacity-20 group-hover:opacity-80 transition overlap">{{item.emoji.repeat(3)}}</span>
         </a>
 
     </div>
 
     <!-- content -->
-    <div class="grow">
+    <div class="grow overflow-y-auto">
         <ng-content></ng-content>
     </div>
 

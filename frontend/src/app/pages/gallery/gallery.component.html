@@ -1,1 +1,53 @@
-<p>gallery works!</p>
+<div class="grid grid-cols-[2fr_1fr] grid-rows-[100%] h-full gap-4">
+
+    <!-- list -->
+    <div class="flex flex-row flex-wrap gap-4 overflow-y-auto no-scrollbar justify-center" *ngIf="(images$ | async) as images">
+        <div
+                *ngFor="let image of images"
+                class="w-xs rounded-sm overflow-hidden cursor-pointer opacity-50 grayscale-50 hover:opacity-100 hover:grayscale-0 transition"
+        >
+            <app-cloud-image
+                    [image]="image"
+                    (click)="select(image)"
+            ></app-cloud-image>
+        </div>
+
+        <div class="justify-self-stretch flex justify-center items-center w-full gap-4">
+            <button (click)="previousPage()">previous</button>
+            <span>page {{page}}</span>
+            <button (click)="nextPage()">next</button>
+        </div>
+    </div>
+
+    <!-- details -->
+    <div>
+        <div class="flex flex-col gap-4" *ngIf="selected$ | async as selected">
+            <div class="rounded-md overflow-hidden">
+                <app-cloud-image [image]="selected"></app-cloud-image>
+            </div>
+
+            <div class="grid grid-cols-2">
+                <div class="flex flex-col">
+                    <span>(title_) {{selected.name}}</span>
+                    <span>(artist) {{selected.author}}</span>
+                    <span>(lang__) {{selected.language}}</span>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <span>Click submit to start rendering the gif.<br>It will be in a pending state and name/artist can be edited.<br>Moderators will verify the gif.</span>
+
+                </div>
+            </div>
+
+            <button class="self-center" (click)="submit(selected)" >submit image</button>
+
+        </div>
+
+        <div class="grid place-content-center" *ngIf="(selected$ | async) === null">
+            Select an image to submit it for rendering.
+        </div>
+    </div>
+
+</div>
+
+

@@ -1,1 +1,3 @@
-<p>cloud-image works!</p>
+<ng-container *ngIf="image as img">
+    <img class="w-full" src="{{img.imageUrl}}" [alt]="img.name">
+</ng-container>

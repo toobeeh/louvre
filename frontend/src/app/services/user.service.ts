@@ -17,7 +17,7 @@ export class UserService {
         switchMap(token => {
           if(token === false) return of(null);
 
-          return usersService.usersMeGet();
+          return usersService.getCurrentUser();
         })
     ).subscribe(user => this._user$.next(user));
   }

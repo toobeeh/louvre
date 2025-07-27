@@ -1,1 +1,53 @@
-<p>gifs works!</p>
+<div class="grid grid-cols-[1fr_1fr] grid-rows-[100%] h-full gap-4">
+
+    <!-- list -->
+    <div class="flex flex-col h-full">
+        <div class="grow grid grid-cols-4 gap-4 overflow-y-auto no-scrollbar justify-center auto-rows-min" *ngIf="(renders$ | async) as renders">
+            <div
+                    *ngFor="let render of renders"
+                    class="contents"
+            >
+                <div class="opacity-50">{{render.finishedRendering ? (render.approved ? "✔️ approved" : "✏️ in review") : "🤖 rendering"}}</div>
+                <div><span class="signature-gradient font-bold">{{render.title}}</span> {{render.titleApproved ? "✔️" : ""}}</div>
+                <div>drawn by {{render.drawer}} {{render.drawerApproved ? "✔️" : ""}}</div>
+                <button (click)="select(render)">manage</button>
+            </div>
+        </div>
+
+        <div class="flex justify-center items-center w-full gap-4">
+            <button (click)="previousPage()">previous</button>
+            <span>page {{page}}</span>
+            <button (click)="nextPage()">next</button>
+        </div>
+    </div>
+
+
+    <!-- details -->
+    <div>
+        <div class="flex flex-col gap-4" *ngIf="selected$ | async as selected">
+            <div class="rounded-md overflow-hidden">
+                <img [src]="selected.gifUrl" class="w-full">
+            </div>
+
+            <div class="grid grid-cols-2 auto-rows-fr">
+                <span>(title_) {{selected.title}}</span> <div><button *ngIf="!selected.approved" (click)="proposeTitle(selected)">change</button></div>
+                <span>(artist) {{selected.drawer}}</span> <div><button *ngIf="!selected.approved" (click)="proposeDrawer(selected)">change</button></div>
+                <span>(lang__) {{selected.language}}</span> <span></span>
+                <span>(params) {{selected.renderParameters?.durationSeconds}}s,
+                    {{selected.renderParameters?.framesPerSecond}}fps,
+                    {{selected.renderParameters?.optimizationLevelPercent}}% optimized</span> <div><button *ngIf="!selected.approved && (userCanManage$ | async)">rerender</button></div>
+            </div>
+
+            <button *ngIf="!selected.approved && (userCanManage$ | async)" (click)="approve(selected)">approve & publish</button>
+            <button *ngIf="selected.approved && (userCanManage$ | async)" (click)="unapprove(selected)">unpublish & review</button>
+
+        </div>
+
+        <div class="grid place-content-center" *ngIf="(selected$ | async) === null">
+            Select a submission to manage it.
+        </div>
+    </div>
+
+</div>
+
+
