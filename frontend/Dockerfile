@@ -1,6 +1,9 @@
 # Stage 1: Build the Angular app
 FROM node:18 AS build
 
+# Install Java (required by openapi-generator-cli)
+RUN apt-get update && apt-get install -y default-jre && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy package files and install dependencies
