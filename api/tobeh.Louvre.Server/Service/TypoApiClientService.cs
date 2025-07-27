@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
 using tobeh.Louvre.Server.Config;
@@ -80,12 +81,21 @@ public class TypoApiClientService(
         {
             throw new Exception(disco.Error);
         }
+
+        var token = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
+        var clientId = token.Claims
+            .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Azp)?.Value;
+        
+        if(clientId is null)
+        {
+            throw new InvalidOperationException("Client ID not found in the JWT.");
+        }
         
         var tokenResponse = await client.RequestTokenAsync(new TokenRequest
         {
             Address = disco.TokenEndpoint,
             GrantType = IdentityModel.OidcConstants.GrantTypes.TokenExchange,
-            ClientId = apiOptions.Value.OauthClientId,
+            ClientId = clientId,
             Parameters =
             {
                 { IdentityModel.OidcConstants.TokenRequest.ClientId, apiOptions.Value.OauthClientId },
