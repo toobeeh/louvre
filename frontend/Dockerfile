@@ -24,7 +24,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy the Angular build output to NGINX's html directory
-COPY --from=build /app/dist/frontend/ /usr/share/nginx/html/
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html/
 
 EXPOSE 80
 
