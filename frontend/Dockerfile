@@ -11,6 +11,7 @@ RUN npm ci
 COPY . .
 
 # Build the Angular app in production mode
+RUN npm run generate:api
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve the app with NGINX

@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "generate:api": "openapi-generator-cli generate -i http://localhost:5000/openapi/louvre.json -g typescript-angular -o src/api/"
+    "generate:api": "openapi-generator-cli generate -i https://api.louvre.tobeh.host/openapi/louvre.json -g typescript-angular -o src/api/"
   },
   "private": true,
   "dependencies": {
