@@ -1,3 +1,4 @@
 export const environment = {
-    apiBaseUrl: "https://api.louvre.tobeh.host"
+    apiBaseUrl: "https://api.louvre.tobeh.host",
+    oauthClientId: "8"
 }

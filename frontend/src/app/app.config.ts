@@ -33,9 +33,8 @@ export const appConfig: ApplicationConfig = {
 
 export const authConfig: AuthConfig = {
   issuer: "https://api.typo.rip/openid",
-  clientId: "7",
+  clientId: environment.oauthClientId,
   responseType: "code",
   strictDiscoveryDocumentValidation: false,
-  showDebugInformation: true,
   disablePKCE: true,
 }
