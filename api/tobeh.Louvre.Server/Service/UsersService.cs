@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using tobeh.Louvre.Server.Controllers.Dto;
 using tobeh.Louvre.Server.Database;
+using tobeh.Louvre.Server.Database.Model;
 
 namespace tobeh.Louvre.Server.Service;
 
 public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
 {
-    public async Task<UserDto?> GetUserByLogin(int typoId)
+    public async Task<UserDto?> GetUserByTypoId(int typoId)
     {
-        logger.LogTrace("GetUserByLogin({Login})", typoId);
+        logger.LogTrace("GetUserByTypoId({Login})", typoId);
         
         var user = await db.Users.FindAsync(typoId);
         if (user == null)
@@ -72,22 +73,42 @@ public class UsersService(ILogger<UsersService> logger, AppDatabaseContext db)
             .ToListAsync();
     }
     
-    public async Task<UserDto> RenameUser(string login, string newName)
+    public async Task<UserDto> RenameUser(int typoId, string newName)
     {
-        logger.LogTrace("RenameUser({Login}, {NewName})", login, newName);
+        logger.LogTrace("RenameUser({typoId}, {NewName})", typoId, newName);
         
-        var user = await db.Users.FindAsync(login);
+        var user = await db.Users.FindAsync(typoId);
         if (user == null)
         {
-            logger.LogWarning("User not found for renaming: {Login}", login);
-            throw new KeyNotFoundException($"User with login {login} not found.");
+            logger.LogWarning("User not found for renaming: {Login}", typoId);
+            throw new KeyNotFoundException($"User with typoId {typoId} not found.");
         }
 
         user.Name = newName;
         db.Users.Update(user);
         await db.SaveChangesAsync();
         
-        logger.LogInformation("User renamed: {Login} to {NewName}", login, newName);
+        logger.LogInformation("User renamed: {typoId} to {NewName}", typoId, newName);
+
+        return new UserDto(user.Id, user.Type, user.Name);
+    }
+    
+    public async Task<UserDto> ChangeUserType(int typoId, UserTypeEnum newType)
+    {
+        logger.LogTrace("ChangeUserType({typoId}, {newType})", typoId, newType);
+        
+        var user = await db.Users.FindAsync(typoId);
+        if (user == null)
+        {
+            logger.LogWarning("User not found for promoting: {typoId}", typoId);
+            throw new KeyNotFoundException($"User with typoId {typoId} not found.");
+        }
+
+        user.Type = newType;
+        db.Users.Update(user);
+        await db.SaveChangesAsync();
+        
+        logger.LogInformation("User type changed: {typoId} to {newType}", typoId, newType);
 
         return new UserDto(user.Id, user.Type, user.Name);
     }

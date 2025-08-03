@@ -81,21 +81,12 @@ public class TypoApiClientService(
         {
             throw new Exception(disco.Error);
         }
-
-        var token = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
-        var clientId = token.Claims
-            .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Azp)?.Value;
-        
-        if(clientId is null)
-        {
-            throw new InvalidOperationException("Client ID not found in the JWT.");
-        }
         
         var tokenResponse = await client.RequestTokenAsync(new TokenRequest
         {
             Address = disco.TokenEndpoint,
             GrantType = IdentityModel.OidcConstants.GrantTypes.TokenExchange,
-            ClientId = clientId,
+            ClientId = apiOptions.Value.OauthClientId,
             Parameters =
             {
                 { IdentityModel.OidcConstants.TokenRequest.ClientId, apiOptions.Value.OauthClientId },

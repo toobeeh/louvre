@@ -64,7 +64,7 @@ public class AuthorizationService(
         }
         
         // fetch user config from db
-        var user = await usersService.GetUserByLogin(Convert.ToInt32(member.TypoId));
+        var user = await usersService.GetUserByTypoId(Convert.ToInt32(member.TypoId));
         if (user is null)
         {
             throw new AuthenticationFailureException("User not authorized to use app");

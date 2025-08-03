@@ -9495,7 +9495,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: None
         /// <br/>
-        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// <br/>Rate limit default: 100 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>JSON Web Key Set (JWKS) containing public keys for OAuth2</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -9511,7 +9511,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: None
         /// <br/>
-        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// <br/>Rate limit default: 100 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>JSON Web Key Set (JWKS) containing public keys for OAuth2</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -9589,7 +9589,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: None
         /// <br/>
-        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// <br/>Rate limit default: 100 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>Minimal openid configuration of typo</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -9605,7 +9605,7 @@ namespace tobeh.Louvre.TypoApiClient
         /// <remarks>
         /// Required Roles: None
         /// <br/>
-        /// <br/>Rate limit default: 10 Requests / 60000 ms TTL
+        /// <br/>Rate limit default: 100 Requests / 60000 ms TTL
         /// </remarks>
         /// <returns>Minimal openid configuration of typo</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -11974,7 +11974,7 @@ namespace tobeh.Louvre.TypoApiClient
     public partial class DiscordAuthenticationResultDto
     {
         /// <summary>
-        /// The decrypted access token for the discord user that has authenticated using an auth code
+        /// The encrypted access token for the discord user that has authenticated using an auth code
         /// </summary>
         [Newtonsoft.Json.JsonProperty("encryptedAccessToken", Required = Newtonsoft.Json.Required.Always)]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -12060,11 +12060,11 @@ namespace tobeh.Louvre.TypoApiClient
         public double ClientId { get; set; }
 
         /// <summary>
-        /// The redirect URI for the OAuth2 client
+        /// The allowed redirect URIs for the OAuth2 client
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("redirectUri", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string RedirectUri { get; set; }
+        [Newtonsoft.Json.JsonProperty("redirectUris", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> RedirectUris { get; set; } = new System.Collections.ObjectModel.Collection<string>();
 
         /// <summary>
         /// The scopes requested by the OAuth2 client
@@ -12274,11 +12274,11 @@ namespace tobeh.Louvre.TypoApiClient
     public partial class CreateOAuth2ClientDto
     {
         /// <summary>
-        /// The OAuth2 redirect URI for the OAuth2 client
+        /// The allowed OAuth2 redirect URIs for the OAuth2 client
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("redirectUri", Required = Newtonsoft.Json.Required.Always)]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string RedirectUri { get; set; }
+        [Newtonsoft.Json.JsonProperty("redirectUris", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<string> RedirectUris { get; set; } = new System.Collections.ObjectModel.Collection<string>();
 
         /// <summary>
         /// The scopes requested by the OAuth2 client

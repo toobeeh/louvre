@@ -61,12 +61,39 @@ public class UsersController(
         return NoContent(); // 204 No Content
     }
     
-    [HttpPatch("{id}/rename"), Authorize(Policy = "Role:Moderator")]
-    public async Task<UserDto> RenameUser(string id, [FromBody] string newName)
+    [HttpPatch("{id:int}/rename"), Authorize(Policy = "Role:Moderator")]
+    public async Task<UserDto> RenameUser(int id, [FromBody] string newName)
     {
         logger.LogTrace("RenameUser({Id}, {NewName})", id, newName);
         
-        var user = await usersService.RenameUser(id, newName);
+        var user = await usersService.RenameUser(Convert.ToInt32(id), newName);
+
+        return user;
+    }
+    
+    [HttpPatch("{id:int}/promote"), Authorize(Policy = "Role:Moderator")]
+    public async Task<UserDto> PromoteUser(int id, [FromBody] UserTypeEnum newType)
+    {
+        logger.LogTrace("RenameUser({Id}, {newType})", id, newType);
+
+        if (newType == UserTypeEnum.Administrator)
+        {
+            throw new ArgumentException("Administrators are recognized via typo member flags and cannot be set.");
+        }
+
+        var requestingUser = await userRequestContext.GetUserAsync();
+        var targetUser = await usersService.GetUserByTypoId(id);
+        if (targetUser == null)
+        {
+            throw new Exception($"User with typoId {id} not found.");
+        }
+        
+        if(requestingUser.UserType == UserTypeEnum.Moderator && targetUser.UserType == UserTypeEnum.Administrator)
+        {
+            throw new ArgumentException("Moderators cannot manage other moderators.");
+        }
+        
+        var user = await usersService.ChangeUserType(id, newType);
 
         return user;
     }
