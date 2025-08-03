@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {OAuthService} from "angular-oauth2-oidc";
-import {distinctUntilChanged, switchMap, map, tap, of, BehaviorSubject} from "rxjs";
+import {distinctUntilChanged, switchMap, map, tap, of, BehaviorSubject, startWith} from "rxjs";
 import {AuthorizeUserDto, UserDto, UsersService} from "../../api";
 
 @Injectable({
@@ -12,10 +12,11 @@ export class UserService {
 
   constructor(private readonly oauthService: OAuthService, private readonly usersService: UsersService) {
     oauthService.events.pipe(
+        startWith(null),
         map(() => oauthService.hasValidAccessToken()),
         distinctUntilChanged(),
-        switchMap(token => {
-          if(token === false) return of(null);
+        switchMap(hasToken => {
+          if(hasToken === false) return of(null);
 
           return usersService.getCurrentUser();
         })

@@ -5,6 +5,7 @@ import {UserService} from "../../services/user.service";
 import {UserDto} from "../../../api";
 import {Observable} from "rxjs";
 import {UsertypePipe} from "../../pipes/usertype.pipe";
+import {OAuthService} from "angular-oauth2-oidc";
 
 @Component({
     selector: 'app-page',
@@ -23,7 +24,7 @@ export class PageComponent {
 
     protected user$: Observable<UserDto | null>;
 
-    constructor(private readonly userService: UserService) {
+    constructor(private readonly userService: UserService, private readonly oauthService: OAuthService) {
         this.user$ = userService.user$;
     }
 
@@ -31,5 +32,9 @@ export class PageComponent {
         {name: "gallery", link: "/gallery", emoji: "🖼️"},
         {name: "gifs", link: "/gifs", emoji: "🎞️"},
     ]
+
+    protected logout() {
+        this.oauthService.logOut();
+    }
 
 }

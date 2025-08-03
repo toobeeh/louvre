@@ -10,11 +10,14 @@
             <h1>Louvre</h1>
         </div>
 
-        <span class="opacity-50 text-right" *ngIf="(user$ | async) as user">{{user.name}} ({{user.userType! | usertype}})</span>
+        <div class="flex items-center justify-end gap-4" *ngIf="(user$ | async) as user">
+            <button (click)="logout()">Logout</button>
+            <span class="opacity-50">{{user.name}} ({{user.userType! | usertype}})</span>
+        </div>
     </div>
 
     <!-- nav -->
-    <div class="flex gap-8 justify-center  pb-4 border-b-2 border-b-gray-800">
+    <div *ngIf="(user$ | async)" class="flex gap-8 justify-center  pb-4 border-b-2 border-b-gray-800">
 
         <a
                 *ngFor="let item of nav"

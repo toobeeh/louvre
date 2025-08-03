@@ -15,11 +15,6 @@ export class AppComponent {
 
   constructor(private oauthService: OAuthService) {
     this.oauthService.configure(authConfig);
-    this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
-      if (!this.oauthService.hasValidAccessToken()) {
-        oauthService.initCodeFlow();
-      }
-    });
   }
 
   title = 'Louvre';
