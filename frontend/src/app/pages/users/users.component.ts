@@ -41,7 +41,7 @@ export class UsersComponent {
             return;
         }
 
-        this.usersService.renameUser(user.typoId, name).subscribe({
+        this.usersService.renameUser(user.typoId, {newName: name}).subscribe({
             next: user =>{
                 alert("User renamed successfully");
                 this.loadUsers();
@@ -61,7 +61,7 @@ export class UsersComponent {
             return;
         }
 
-        this.usersService.promoteUser(user.typoId, type).subscribe({
+        this.usersService.promoteUser(user.typoId, {newUserType: type as UserTypeEnum}).subscribe({
             next: user => {
                 alert("User type changed successfully");
                 this.loadUsers();
