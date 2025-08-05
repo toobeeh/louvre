@@ -150,4 +150,42 @@ export class GifsComponent {
       }
     });
   }
+
+  rerenderGif(render: RenderInfoDto) {
+
+    const renderSecondsInput = prompt("Enter gif duration in seconds:", render.renderParameters?.durationSeconds.toString());
+    const renderSeconds = Number(renderSecondsInput);
+    if(isNaN(renderSeconds) || renderSeconds <= 0) {
+      alert("Invalid render duration");
+      return;
+    }
+
+    const renderFpsInput = prompt("Enter gif fps:", render.renderParameters?.framesPerSecond.toString());
+    const renderFps = Number(renderFpsInput);
+    if(isNaN(renderFps) || renderFps <= 0) {
+      alert("Invalid render fps");
+      return;
+    }
+
+    const renderOptimizationInput = prompt("Enter gif optimization level in %:", render.renderParameters?.optimizationLevelPercent.toString());
+    const renderOptimization = Number(renderOptimizationInput);
+    if(isNaN(renderOptimization) || renderOptimization < 0 || renderOptimization > 100) {
+      alert("Invalid render optimization level");
+      return;
+    }
+
+    this.renderService.rerenderRender(render.id!, {
+      framesPerSecond: renderFps,
+      durationSeconds: renderSeconds,
+      optimizationLevelPercent: renderOptimization
+    }).subscribe({
+      next: () => {
+        this.searchRenders();
+        this.select(render);
+        alert("Render is being processed with new parameters");
+      },
+      error: (err) => console.error("Failed to start rerendering", err)
+    });
+    this.select(null);
+  }
 }

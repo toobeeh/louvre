@@ -45,7 +45,7 @@
 
                 <span>(params) {{selected.renderParameters?.durationSeconds}}s,
                     {{selected.renderParameters?.framesPerSecond}}fps,
-                    {{selected.renderParameters?.optimizationLevelPercent}}% optimized</span> <div><button *ngIf="!selected.approved && (userCanManage$ | async)">rerender</button></div>
+                    {{selected.renderParameters?.optimizationLevelPercent}}% optimized</span> <div><button (click)="rerenderGif(selected)" *ngIf="!selected.approved">rerender</button></div>
             </div>
 
             <button *ngIf="!selected.approved && (userCanManage$ | async)" (click)="approve(selected)">approve & publish</button>
