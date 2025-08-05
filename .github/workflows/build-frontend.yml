@@ -1,4 +1,4 @@
-name: build-server
+name: build-frontend
 
 on:
   push:
