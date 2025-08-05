@@ -48,3 +48,7 @@ button {
 select {
   @apply bg-transparent border-b-2 border-[#88b7ea] text-gray-300 p-1 w-fit cursor-pointer hover:text-white font-bold hover:border-[#4c64bc] transition;
 }
+
+::picker(select) {
+  color: black;
+}
