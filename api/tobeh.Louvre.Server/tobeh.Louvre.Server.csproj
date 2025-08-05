@@ -32,8 +32,12 @@
     </PackageReference>
     <PackageReference Include="Ulid" Version="1.3.4" />
   </ItemGroup>
-  <Target Name="GenerateTypoApiClient" BeforeTargets="BeforeBuild">
+  
+  <Target Name="GenerateTypoApiClient" BeforeTargets="BeforeCompile">
     <Exec Command="nswag openapi2csclient /input:https://api.typo.rip/openapi.json /output:TypoClient.cs /namespace:tobeh.Louvre.TypoApiClient" />
+    <ItemGroup>
+      <Compile Include="TypoClient.cs" />
+    </ItemGroup>
   </Target>
   
 </Project>
