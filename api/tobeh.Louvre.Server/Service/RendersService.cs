@@ -318,7 +318,49 @@ public class RendersService(ILogger<RendersService> logger, AppDatabaseContext d
         
         return MapToDto(entity.Entity, drawerName);
     }
-    
+
+    public async Task<RenderData> GetRandomRender(string? language = null)
+    {
+        logger.LogTrace("GetRandomRender({Language})", language);
+
+        var query = db.Renders
+            .Where(render => render.Approved && render.Rendered)
+            .AsQueryable();
+        
+        // filter by language if provided
+        if (!string.IsNullOrEmpty(language))
+        {
+            query = query.Where(r => r.Language == language);
+        }
+
+        // get a random render
+        var count = await query.CountAsync();
+        if (count == 0)
+        {
+            logger.LogWarning("No renders found for random selection.");
+            throw new InvalidOperationException("No renders available for random selection.");
+        }
+        
+        var randomIndex = new Random().Next(0, count);
+        var randomRender = await query
+            .Skip(randomIndex)
+            .Take(1)
+            .FirstOrDefaultAsync();
+
+        if (randomRender != null)
+        {
+            var drawerName = randomRender.ApprovedDrawerTypoId is null
+                ? null
+                : db.Users.FirstOrDefault(u => u.Id == randomRender.ApprovedDrawerTypoId)?.Name;
+        
+            return MapToDto(randomRender, drawerName);
+        }
+        
+        logger.LogWarning("No renders found for random selection.");
+        throw new InvalidOperationException("No renders available for random selection.");
+
+    }
+
     private RenderData MapToDto(RenderEntity render, string? drawerName)
     {
         return new RenderData(

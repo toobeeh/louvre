@@ -62,6 +62,15 @@ public class RendersController(
 
         return mapper.Map<RenderInfoDto>(render);
     }
+    
+    [HttpPost("/random"), Authorize(Policy = "Role:Moderator")]
+    public async Task<RenderInfoDto> GetRandomRender(Ulid id, GetRandomRenderDto getRandomRenderDto)
+    {
+        logger.LogTrace("GetRandomRender({Id})", id);
+        
+        var render = await rendersService.GetRandomRender(getRandomRenderDto.Language);
+        return mapper.Map<RenderInfoDto>(render);
+    }
 
     [HttpDelete("{id}"), Authorize(Policy = "Role:Moderator")]
     public async Task<IActionResult> RemoveRender(Ulid id)
