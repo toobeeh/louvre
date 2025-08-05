@@ -35,7 +35,7 @@
 
                 <span>(artist) {{selected.drawer}}</span>
                 <div class="flex gap-2 items-center">
-                    <select #drawerId (change)="proposeDrawer(selected, drawerId.value)">
+                    <select *ngIf="!selected.approved" #drawerId (change)="proposeDrawer(selected, drawerId.value)">
                         <option value="0">Select a verified drawer</option>
                         <option *ngFor="let drawer of (users$ | async)" [value]="drawer.typoId" [selected]="drawer.typoId.toString() === drawerId.value">{{drawer.name}}</option>
                     </select>
