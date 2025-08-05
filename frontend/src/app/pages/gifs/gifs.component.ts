@@ -188,4 +188,6 @@ export class GifsComponent {
     });
     this.select(null);
   }
+
+  protected readonly performance = performance;
 }
