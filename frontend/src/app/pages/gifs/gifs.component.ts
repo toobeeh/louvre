@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import {BehaviorSubject, map, Observable} from "rxjs";
-import {RenderInfoDto, RenderPreviewDto, RendersService, UserDto} from "../../../api";
+import {RenderInfoDto, RenderPreviewDto, RendersService, UserDto, UsersService} from "../../../api";
 import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
 import {UserService} from "../../services/user.service";
 import {UsertypePipe} from "../../pipes/usertype.pipe";
@@ -24,10 +24,15 @@ export class GifsComponent {
   protected readonly renders$ = new BehaviorSubject<RenderPreviewDto[] | null>(null);
   protected readonly selected$ = new BehaviorSubject<RenderInfoDto | null>(null);
   protected readonly user$: Observable<UserDto | null>;
+  protected readonly users$ = new BehaviorSubject<UserDto[] | null>(null);
 
-  constructor(private readonly renderService: RendersService, private readonly userService: UserService) {
+  constructor(
+      private readonly renderService: RendersService,
+      private readonly userService: UserService,
+      private readonly usersService: UsersService) {
     this.searchRenders();
     this.user$ = userService.user$;
+    usersService.getAuthorizedUsers().subscribe(users => this.users$.next(users));
   }
 
   protected get page(){
@@ -85,13 +90,11 @@ export class GifsComponent {
     this.select(null);
   }
 
-  proposeDrawer(render: RenderPreviewDto) {
-    const input = prompt("Propose a drawer typo member (id number):");
-    if(!input) return;
+  proposeDrawer(render: RenderPreviewDto, input: string) {
 
     const drawer = Number(input);
-    if(isNaN(drawer) || drawer < 0) {
-      alert("Invalid drawer ID");
+    if(isNaN(drawer) || drawer <= 0) {
+      alert("Invalid drawer");
       return;
     }
 
@@ -130,5 +133,21 @@ export class GifsComponent {
       error: (err) => console.error("Failed to unapprove render", err)
     });
     this.select(null);
+  }
+
+  remove(render: RenderInfoDto) {
+    if(!confirm("Are you sure you want to remove this render? This action cannot be undone.")) return;
+
+    this.renderService.removeRender(render.id!).subscribe({
+      next: () => {
+        this.searchRenders();
+        this.select(null);
+        alert("Render removed successfully");
+      },
+      error: (err) => {
+        console.error("Failed to remove render", err);
+        alert("Failed to remove render");
+      }
+    });
   }
 }

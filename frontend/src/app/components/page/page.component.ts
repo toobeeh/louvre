@@ -31,6 +31,7 @@ export class PageComponent {
     protected readonly nav = [
         {name: "gallery", link: "/gallery", emoji: "🖼️"},
         {name: "gifs", link: "/gifs", emoji: "🎞️"},
+        {name: "users", link: "/users", emoji: "👤"},
     ]
 
     protected logout() {

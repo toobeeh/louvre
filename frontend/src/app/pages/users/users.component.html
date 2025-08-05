@@ -1,0 +1,40 @@
+<!-- list -->
+<div class="flex flex-col h-full items-center gap-8">
+
+    <div *ngIf="((user$ | async)?.userType ?? 4) < 2">
+        <button (click)="addUser()">add a new user</button>
+    </div>
+
+    <div class="grow grid grid-cols-[auto_auto_auto_1fr_1fr_1fr] gap-4 overflow-y-auto no-scrollbar justify-center auto-rows-min place-items-center" *ngIf="(users$ | async) as users">
+        <div
+                *ngFor="let user of users"
+                class="contents"
+        >
+            <div class="opacity-50">{{user.userType ?? -1 | usertype}}</div>
+            <div><span class="signature-gradient font-bold">{{user.name}}</span></div>
+            <div>#{{user.typoId}}</div>
+            <div class="opacity-50">
+                @switch (user.userType){
+                    @case (0){
+                        This user is a typo administrator and has full access.
+                    }
+                    @case (1){
+                        This user can submit gifs, manage their approval status and manage users.
+                    }
+                    @case (2){
+                        This user can submit gifs.
+                    }
+                    @case (3){
+                        This user is only available in the drawer selection.
+                    }
+                }
+            </div>
+            <div>
+                <button *ngIf="((user$ | async)?.userType ?? 4) < 2" (click)="renameUser(user)">rename</button>
+            </div>
+            <div>
+                <button *ngIf="((user$ | async)?.userType ?? 4) < 2" (click)="changeType(user)">change type</button>
+            </div>
+        </div>
+    </div>
+</div>

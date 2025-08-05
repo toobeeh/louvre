@@ -1,4 +1,4 @@
-<div class="grid grid-cols-[1fr_1fr] grid-rows-[100%] h-full gap-4">
+<div class="grid grid-cols-[1fr_800px] grid-rows-[100%] h-full gap-4">
 
     <!-- list -->
     <div class="flex flex-col h-full">
@@ -30,15 +30,26 @@
             </div>
 
             <div class="grid grid-cols-2 auto-rows-fr">
-                <span>(title_) {{selected.title}}</span> <div><button *ngIf="!selected.approved" (click)="proposeTitle(selected)">change</button></div>
-                <span>(artist) {{selected.drawer}}</span> <div><button *ngIf="!selected.approved" (click)="proposeDrawer(selected)">change</button></div>
+                <span>(title_) {{selected.title}}</span>
+                <div><button *ngIf="!selected.approved" (click)="proposeTitle(selected)">change</button></div>
+
+                <span>(artist) {{selected.drawer}}</span>
+                <div class="flex gap-2 items-center">
+                    <select #drawerId (change)="proposeDrawer(selected, drawerId.value)">
+                        <option value="0">Select a verified drawer</option>
+                        <option *ngFor="let drawer of (users$ | async)" [value]="drawer.typoId" [selected]="drawer.typoId.toString() === drawerId.value">{{drawer.name}}</option>
+                    </select>
+                </div>
+
                 <span>(lang__) {{selected.language}}</span> <span></span>
+
                 <span>(params) {{selected.renderParameters?.durationSeconds}}s,
                     {{selected.renderParameters?.framesPerSecond}}fps,
                     {{selected.renderParameters?.optimizationLevelPercent}}% optimized</span> <div><button *ngIf="!selected.approved && (userCanManage$ | async)">rerender</button></div>
             </div>
 
             <button *ngIf="!selected.approved && (userCanManage$ | async)" (click)="approve(selected)">approve & publish</button>
+            <button *ngIf="selected.finishedRendering && (userCanManage$ | async)" (click)="remove(selected)">remove</button>
             <button *ngIf="selected.approved && (userCanManage$ | async)" (click)="unapprove(selected)">unpublish & review</button>
 
         </div>

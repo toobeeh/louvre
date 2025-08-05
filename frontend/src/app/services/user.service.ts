@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {OAuthService} from "angular-oauth2-oidc";
 import {distinctUntilChanged, switchMap, map, tap, of, BehaviorSubject, startWith} from "rxjs";
-import {AuthorizeUserDto, UserDto, UsersService} from "../../api";
+import { UserDto, UsersService} from "../../api";
 
 @Injectable({
   providedIn: 'root'
